@@ -1,0 +1,110 @@
+{{- if .Values.redis.enabled }}
+{{- if and .Values.redis.auth.enabled (not .Values.redis.auth.existingSecret) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "rag-app.redis.secretName" . }}
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+    {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "redis") | nindent 4 }}
+type: Opaque
+stringData:
+  {{ .Values.redis.auth.passwordKey }}: {{ .Values.redis.auth.password | quote }}
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rag-app.redis.fullname" . }}
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+    {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "redis") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+  selector:
+    {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "redis") | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: {{ if .Values.redis.persistence.enabled }}StatefulSet{{ else }}Deployment{{ end }}
+metadata:
+  name: {{ include "rag-app.redis.fullname" . }}
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+    {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "redis") | nindent 4 }}
+spec:
+  replicas: 1
+  {{- if .Values.redis.persistence.enabled }}
+  serviceName: {{ include "rag-app.redis.fullname" . }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "redis") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rag-app.labels" . | nindent 8 }}
+        {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "redis") | nindent 8 }}
+    spec:
+      {{- include "rag-app.pullSecrets" . | nindent 6 }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+      containers:
+        - name: redis
+          image: {{ include "rag-app.image" (dict "ctx" . "image" .Values.redis.image) }}
+          imagePullPolicy: {{ include "rag-app.pullPolicy" (dict "ctx" . "image" .Values.redis.image) }}
+          {{- if .Values.redis.auth.enabled }}
+          args:
+            - "--requirepass"
+            - "$(REDIS_PASSWORD)"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "rag-app.redis.secretName" . }}
+                  key: {{ .Values.redis.auth.passwordKey }}
+          {{- end }}
+          ports:
+            - name: redis
+              containerPort: 6379
+          readinessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      {{- if not .Values.redis.persistence.enabled }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+  {{- if .Values.redis.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.redis.persistence.size }}
+        {{- $sc := include "rag-app.storageClass" (dict "ctx" . "sc" .Values.redis.persistence.storageClass) }}
+        {{- if $sc }}
+        storageClassName: {{ $sc }}
+        {{- end }}
+  {{- end }}
+{{- end }}

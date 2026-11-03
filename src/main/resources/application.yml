@@ -1,0 +1,125 @@
+spring:
+  application:
+    name: rag-app
+  profiles:
+    active: dev
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ragdb}
+    username: ${DB_USERNAME:rag}
+    password: ${DB_PASSWORD:rag}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    placeholders:
+      embeddingDimensions: ${EMBEDDING_DIMENSIONS:384}
+      textSearchConfig: ${RETRIEVAL_TS_CONFIG:english}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 100MB
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: ${EMBEDDING_DIMENSIONS:384}
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+    embedding:
+      transformer:
+        onnx:
+          model-uri: ${EMBEDDING_MODEL_URI:classpath:/onnx/all-MiniLM-L6-v2/model.onnx}
+          model-output-name: ${EMBEDDING_MODEL_OUTPUT:last_hidden_state}
+        tokenizer:
+          uri: ${EMBEDDING_TOKENIZER_URI:classpath:/onnx/all-MiniLM-L6-v2/tokenizer.json}
+    openai:
+      api-key: ${OPENAI_API_KEY:not-configured}
+      base-url: ${OPENAI_BASE_URL:https://api.groq.com/openai}
+      chat:
+        options:
+          model: ${LLM_MODEL:openai/gpt-oss-20b}
+          temperature: 0.2
+
+server:
+  port: 8080
+
+app:
+  rag:
+    top-k: 4
+    system-prompt: >-
+      You are a helpful assistant. Answer the user's question using only the
+      provided context. If the answer is not contained in the context, say you
+      do not know. Be concise and cite facts from the context.
+  retrieval:
+    mode: ${RETRIEVAL_MODE:vector}          # vector | hybrid
+    rrf-k: ${RETRIEVAL_RRF_K:60}
+    text-search-config: ${RETRIEVAL_TS_CONFIG:english}
+  embedding:
+    provider: ${EMBEDDING_PROVIDER:local}   # local | openai
+    dimensions: ${EMBEDDING_DIMENSIONS:384}
+    openai:
+      base-url: ${EMBEDDING_OPENAI_BASE_URL:https://api.openai.com}
+      api-key: ${EMBEDDING_API_KEY:}
+      model: ${EMBEDDING_OPENAI_MODEL:text-embedding-3-small}
+  cache:
+    enabled: true
+    similarity-threshold: 0.95
+    ttl-seconds: 3600
+    max-entries: 500
+  guardrails:
+    enabled: true
+    redact-pii: true
+    block-prompt-injection: true
+    filter-output: true
+    banned-output-phrases: []
+  rate-limit:
+    enabled: true
+    requests-per-minute: 60
+  ingest:
+    max-file-size-bytes: 10485760
+    allowed-content-types:
+      - application/pdf
+      - text/plain
+      - text/markdown
+      - text/x-markdown
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  health:
+    redis:
+      enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.example.rag: INFO
+    SECURITY: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+management:
+  endpoint:
+    health:
+      show-details: never

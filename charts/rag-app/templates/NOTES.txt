@@ -1,0 +1,24 @@
+RAG app deployed as release "{{ .Release.Name }}".
+
+Components:
+  - App:      {{ include "rag-app.fullname" . }} (Service :{{ .Values.app.service.port }})
+  - Postgres: {{ include "rag-app.postgres.fullname" . }} (pgvector){{ if not .Values.postgres.enabled }} [DISABLED]{{ end }}
+  - Redis:    {{ include "rag-app.redis.fullname" . }}{{ if not .Values.redis.enabled }} [DISABLED]{{ end }}
+
+{{- if .Values.ingress.enabled }}
+
+Reach the API at: http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}/
+  Ingest:  curl -F files=@doc.pdf  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}/api/ingest
+  Chat:    curl -XPOST -H 'Content-Type: application/json' -d '{"question":"..."}' http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}/api/chat
+{{- else }}
+
+Port-forward to reach the API:
+  kubectl port-forward svc/{{ include "rag-app.fullname" . }} 8080:{{ .Values.app.service.port }}
+{{- end }}
+
+{{- if not .Values.app.secrets.llmApiKey.existingSecret }}
+
+WARNING: using a placeholder LLM API key. Provide a real key with:
+  kubectl create secret generic my-llm-key --from-literal={{ .Values.app.secrets.llmApiKey.key }}=<KEY>
+  helm upgrade ... --set app.secrets.llmApiKey.existingSecret=my-llm-key
+{{- end }}

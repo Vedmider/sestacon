@@ -1,0 +1,10 @@
+target/
+*.class
+*.log
+.idea/
+*.iml
+.DS_Store
+# Large baked DJL native cache — regenerate with scripts/prefetch-djl-cache.sh
+docker/djl-cache/
+# Vendored ONNX model is large; keep out of git, re-download if needed
+src/main/resources/onnx/all-MiniLM-L6-v2/model.onnx

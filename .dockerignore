@@ -1,0 +1,10 @@
+target/
+.git/
+.idea/
+*.iml
+*.log
+env.sh
+docs/
+charts/
+.gitignore
+README.md

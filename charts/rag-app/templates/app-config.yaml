@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rag-app.fullname" . }}-config
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+    {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "app") | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  OPENAI_BASE_URL: {{ .Values.app.config.llm.baseUrl | quote }}
+  LLM_MODEL: {{ .Values.app.config.llm.model | quote }}
+  RETRIEVAL_MODE: {{ .Values.app.config.retrieval.mode | quote }}
+  RETRIEVAL_RRF_K: {{ .Values.app.config.retrieval.rrfK | quote }}
+  RETRIEVAL_TS_CONFIG: {{ .Values.app.config.retrieval.textSearchConfig | quote }}
+  MANAGEMENT_SERVER_PORT: {{ .Values.app.managementPort | quote }}
+  DB_URL: {{ printf "jdbc:postgresql://%s:%v/%s" (include "rag-app.postgres.fullname" .) .Values.postgres.service.port .Values.postgres.auth.database | quote }}
+  DB_USERNAME: {{ .Values.postgres.auth.username | quote }}
+  REDIS_HOST: {{ include "rag-app.redis.fullname" . | quote }}
+  REDIS_PORT: {{ .Values.redis.service.port | quote }}
+  APP_CACHE_SIMILARITY_THRESHOLD: {{ .Values.app.config.cache.similarityThreshold | quote }}
+  APP_RATE_LIMIT_REQUESTS_PER_MINUTE: {{ .Values.app.config.rateLimit.requestsPerMinute | quote }}
+  EMBEDDING_PROVIDER: {{ .Values.app.config.embedding.provider | quote }}
+  EMBEDDING_DIMENSIONS: {{ .Values.app.config.embedding.dimensions | quote }}
+  SPRING_AI_VECTORSTORE_PGVECTOR_DIMENSIONS: {{ .Values.app.config.embedding.dimensions | quote }}
+  {{- with .Values.app.config.embedding.local }}
+  EMBEDDING_MODEL_URI: {{ .modelUri | quote }}
+  EMBEDDING_TOKENIZER_URI: {{ .tokenizerUri | quote }}
+  EMBEDDING_MODEL_OUTPUT: {{ .modelOutputName | quote }}
+  {{- end }}
+  {{- with .Values.app.config.embedding.openai }}
+  EMBEDDING_OPENAI_BASE_URL: {{ .baseUrl | quote }}
+  EMBEDDING_OPENAI_MODEL: {{ .model | quote }}
+  {{- end }}
+{{- if not .Values.app.secrets.llmApiKey.existingSecret }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "rag-app.fullname" . }}-llm-secret
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+    {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "app") | nindent 4 }}
+type: Opaque
+stringData:
+  {{ .Values.app.secrets.llmApiKey.key }}: "not-configured"
+{{- end }}

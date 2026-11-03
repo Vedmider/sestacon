@@ -1,0 +1,16 @@
+{{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "rag-app.fullname" . }}
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "app") | nindent 6 }}
+  endpoints:
+    - port: management
+      path: /actuator/prometheus
+      interval: 15s
+{{- end }}

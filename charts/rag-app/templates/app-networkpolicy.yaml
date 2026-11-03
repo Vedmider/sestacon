@@ -1,0 +1,41 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "rag-app.fullname" . }}
+  labels:
+    {{- include "rag-app.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "rag-app.selectorLabels" (dict "ctx" . "component" "app") | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: http
+  egress:
+    # DNS
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # PostgreSQL + Redis (same namespace, selected by chart component label)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: {{ include "rag-app.name" . }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgres.service.port }}
+        - protocol: TCP
+          port: {{ .Values.redis.service.port }}
+    # External LLM API over HTTPS
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+{{- end }}
