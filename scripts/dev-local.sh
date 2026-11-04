@@ -9,6 +9,10 @@
 #   2. ~/.config/rag-app/groq.env  (your local file, outside the repo).
 # Chat needs a key; ingest/health/metrics work without one.
 #
+# AI + image/db settings have sensible defaults in scripts/config.sh and are overridable
+# by env, e.g.:  EMBEDDING_PROVIDER=openai RETRIEVAL_MODE=hybrid LLM_MODEL=llama3.1 \
+#                OPENAI_BASE_URL=http://host.docker.internal:11434 bash scripts/dev-local.sh all
+#
 # Usage:
 #   scripts/dev-local.sh all       # ONE-SHOT: build → start → status → test → down
 #   scripts/dev-local.sh up        # start the stack (build image first if missing)
@@ -39,9 +43,10 @@ resolve_key() {
 
 build() {
   echo "== build image $IMAGE =="
-  if [ ! -d "$REPO/docker/djl-cache/pytorch" ]; then
-    bash "$REPO/scripts/prefetch-djl-cache.sh"
-  fi
+  # The build bakes the local embedding model + DJL native cache into the image, so they
+  # must be present first. The script fetches them if missing (or run the scripts yourself).
+  [ -s "$REPO/src/main/resources/onnx/all-MiniLM-L6-v2/model.onnx" ] || bash "$REPO/scripts/fetch-model.sh"
+  [ -d "$REPO/docker/djl-cache/pytorch" ] || bash "$REPO/scripts/prefetch-djl-cache.sh"
   local secret=""
   [ -f "$HOME/.m2/settings.xml" ] && secret="--secret id=m2settings,src=$HOME/.m2/settings.xml"
   ( cd "$REPO" && DOCKER_BUILDKIT=1 docker build \
@@ -53,6 +58,7 @@ up() {
   resolve_key
   docker image inspect "$IMAGE" >/dev/null 2>&1 || build
   down_quiet
+  echo "== config: embeddings=$EMBEDDING_PROVIDER (dim $EMBEDDING_DIMENSIONS) · retrieval=$RETRIEVAL_MODE · llm=$LLM_MODEL @ $OPENAI_BASE_URL =="
   echo "== start pgvector + redis + app (ephemeral) =="
   docker network create "$NET" >/dev/null
   docker run -d --name "$PG" --network "$NET" \
@@ -63,7 +69,11 @@ up() {
   docker run -d --name "$APP" --network "$NET" -p "${PORT}:8080" \
     -e DB_URL=jdbc:postgresql://$PG:5432/"$DB_NAME" -e DB_USERNAME="$DB_USER" -e DB_PASSWORD="$DB_PASS" \
     -e REDIS_HOST=$RD -e REDIS_PORT=6379 -e SPRING_PROFILES_ACTIVE=prod \
-    -e RETRIEVAL_MODE="${RETRIEVAL_MODE:-vector}" \
+    -e RETRIEVAL_MODE="$RETRIEVAL_MODE" \
+    -e EMBEDDING_PROVIDER="$EMBEDDING_PROVIDER" -e EMBEDDING_DIMENSIONS="$EMBEDDING_DIMENSIONS" \
+    -e EMBEDDING_OPENAI_BASE_URL="$EMBEDDING_OPENAI_BASE_URL" -e EMBEDDING_OPENAI_MODEL="$EMBEDDING_OPENAI_MODEL" \
+    -e EMBEDDING_API_KEY="$EMBEDDING_API_KEY" \
+    -e OPENAI_BASE_URL="$OPENAI_BASE_URL" -e LLM_MODEL="$LLM_MODEL" \
     -e OPENAI_API_KEY="$OPENAI_API_KEY" "$IMAGE" >/dev/null
   echo "== waiting for health =="
   for i in $(seq 1 60); do

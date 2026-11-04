@@ -7,27 +7,39 @@
 - For a real `/api/chat` answer: an API key for any OpenAI-compatible provider
   (Groq's free tier works out of the box — base URL is preconfigured).
 
-## Large files (kept out of git)
+## Large files (not in git) — get them before building
 
-Two artifacts are **deliberately not committed** (too large for a shareable repo) and are
-`.gitignore`d. Each can be downloaded on demand, placed anywhere, and pointed at via
-config — you choose:
+Two artifacts are too large to commit and are `.gitignore`d. **Easiest path: the scripts
+download them to the correct place for you** — and `dev-local.sh` runs them automatically
+on first build, so normally you do nothing. The details below are only if you want to
+fetch them by hand.
 
-| Artifact | Size | Needed for | How to obtain (pick one) |
+| Artifact | ~Size | Exact location in the repo | Fetch with |
 | --- | --- | --- | --- |
-| Embedding model `model.onnx` (all-MiniLM-L6-v2) | ~87 MB | local embeddings | `bash scripts/fetch-model.sh` (default path), **or** download it yourself and set `EMBEDDING_MODEL_URI=file:/your/path/model.onnx` (also accepts `https:`) |
-| DJL native cache (libtorch + tokenizers) | ~433 MB | *offline* embeddings in the Docker image | let DJL download it on first run (needs internet once), **or** `bash scripts/prefetch-djl-cache.sh` to pre-stage `docker/djl-cache`, **or** point `DJL_CACHE_DIR` at an existing `~/.djl.ai`-style cache |
+| Embedding model `model.onnx` (all-MiniLM-L6-v2) | 87 MB | `src/main/resources/onnx/all-MiniLM-L6-v2/model.onnx` | `bash scripts/fetch-model.sh` |
+| DJL native cache (libtorch + tokenizers) | 433 MB | `docker/djl-cache/` | `bash scripts/prefetch-djl-cache.sh` |
 
-Quick start (default paths):
+(The matching `tokenizer.json` is already committed, so only `model.onnx` is missing.)
 
+The Docker image is **built with both baked in**, so they must exist before `docker build`
+(`dev-local.sh` fetches them if missing). The DJL cache must be pre-staged for the build —
+it is not downloaded at container start.
+
+### Download the model by hand
+Put it at the exact path in the table:
 ```bash
-bash scripts/fetch-model.sh         # downloads the embedding model once (~87 MB)
-# scripts/prefetch-djl-cache.sh is only needed to bake an OFFLINE Docker image
+mkdir -p src/main/resources/onnx/all-MiniLM-L6-v2
+curl -fSL -o src/main/resources/onnx/all-MiniLM-L6-v2/model.onnx \
+  https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/onnx/model.onnx
 ```
 
-To place the model elsewhere, download to any directory (or `MODEL_DIR=/path bash
-scripts/fetch-model.sh`) and start the app with `EMBEDDING_MODEL_URI=file:/path/model.onnx`.
-See [Configuration](configuration.md) for all path overrides.
+### Or keep the model anywhere and point the app at it
+```bash
+MODEL_DIR=/my/models bash scripts/fetch-model.sh         # download to a custom dir, then…
+EMBEDDING_MODEL_URI=file:/my/models/model.onnx bash scripts/dev-local.sh up
+```
+(`EMBEDDING_MODEL_URI` also accepts `classpath:` and `https:`.) See
+[Configuration](configuration.md) for all path overrides.
 
 ## 1. Build and test
 

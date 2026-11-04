@@ -27,3 +27,20 @@ RUNTIME_IMAGE="${RUNTIME_IMAGE:-${MIRROR}/library/eclipse-temurin:21-jre}"
 DB_NAME="${DB_NAME:-ragdb}"
 DB_USER="${DB_USERNAME:-rag}"
 DB_PASS="${DB_PASSWORD:-rag}"
+
+
+# --- AI configuration (mirrors Helm values; override via env or edit the defaults) -----
+# Embeddings: local = bundled ONNX model (downloaded by fetch-model.sh, baked at build);
+#             openai = external OpenAI-compatible embeddings API (no model download needed).
+EMBEDDING_PROVIDER="${EMBEDDING_PROVIDER:-local}"          # local | openai
+EMBEDDING_DIMENSIONS="${EMBEDDING_DIMENSIONS:-384}"        # must match the embedding model
+EMBEDDING_OPENAI_BASE_URL="${EMBEDDING_OPENAI_BASE_URL:-https://api.openai.com}"
+EMBEDDING_OPENAI_MODEL="${EMBEDDING_OPENAI_MODEL:-text-embedding-3-small}"
+EMBEDDING_API_KEY="${EMBEDDING_API_KEY:-}"                 # only for EMBEDDING_PROVIDER=openai
+
+# LLM (chat) — any OpenAI-compatible endpoint (Groq default; OpenAI; local Ollama).
+OPENAI_BASE_URL="${OPENAI_BASE_URL:-https://api.groq.com/openai}"
+LLM_MODEL="${LLM_MODEL:-openai/gpt-oss-20b}"
+
+# Retrieval: vector = dense only; hybrid = vector + full-text + RBAC + RRF.
+RETRIEVAL_MODE="${RETRIEVAL_MODE:-vector}"                 # vector | hybrid

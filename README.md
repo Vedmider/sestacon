@@ -11,6 +11,32 @@ ask questions answered **grounded in those documents** with source attribution.
   rate limiting, Prometheus metrics, non-root/read-only containers
 - **One Helm chart** deploys the app + PostgreSQL/pgvector + Redis
 
+## Run locally (Docker)
+
+Clone, then one script brings up the whole stack (app + pgvector + Redis) as throwaway
+containers:
+
+```bash
+export OPENAI_API_KEY=<your-key>     # only needed for /api/chat answers
+bash scripts/dev-local.sh up         # downloads the model if missing, builds, starts on :18080
+```
+
+Test it (curl or Postman against `http://localhost:18080`):
+```bash
+curl -F "files=@notes.md;type=text/markdown" http://localhost:18080/api/ingest
+curl -XPOST http://localhost:18080/api/chat -H 'Content-Type: application/json' \
+     -d '{"question":"what do my notes say?"}'
+bash scripts/dev-local.sh down       # stop + wipe everything
+```
+
+- **Defaults (no config):** local MiniLM embeddings (384-dim) · Groq LLM `openai/gpt-oss-20b` · `vector` retrieval · Redis cache · guardrails on. The only thing you provide is `OPENAI_API_KEY`.
+- The embedding model (~87 MB) is **not** in git — the script downloads it on first run
+  (or run `scripts/fetch-model.sh` yourself); the image is built with it baked in.
+- **Tuning (other options):** switch LLM, embeddings, or retrieval via env or
+  `scripts/config.sh` — e.g. `RETRIEVAL_MODE=hybrid`, `EMBEDDING_PROVIDER=openai`, or a
+  local Ollama LLM with `LLM_MODEL=llama3.1 OPENAI_BASE_URL=http://host.docker.internal:11434`.
+  See [Local Development](docs/user-guide/local-development.md).
+
 ## Documentation
 
 Full documentation is in [`docs/`](docs/README.md), split into two tracks:
