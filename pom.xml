@@ -17,6 +17,24 @@
     <name>rag-app</name>
     <description>Production-ready RAG application (Spring AI + pgvector)</description>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Andrii Lisovets</name>
+            <email>andrii.lisovets@gmail.com</email>
+            <roles>
+                <role>creator</role>
+            </roles>
+        </developer>
+    </developers>
+
     <properties>
         <java.version>21</java.version>
         <spring-ai.version>1.0.1</spring-ai.version>

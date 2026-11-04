@@ -8,6 +8,7 @@ public class RateLimitProperties {
     private boolean enabled = true;
     private int requestsPerMinute = 60;
     private boolean trustForwardedHeader = false;
+    private long maxTrackedClients = 100_000;
 
     public boolean isEnabled() {
         return enabled;
@@ -31,5 +32,13 @@ public class RateLimitProperties {
 
     public void setTrustForwardedHeader(boolean trustForwardedHeader) {
         this.trustForwardedHeader = trustForwardedHeader;
+    }
+
+    public long getMaxTrackedClients() {
+        return maxTrackedClients;
+    }
+
+    public void setMaxTrackedClients(long maxTrackedClients) {
+        this.maxTrackedClients = maxTrackedClients;
     }
 }

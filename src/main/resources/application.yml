@@ -79,6 +79,11 @@ app:
   rate-limit:
     enabled: true
     requests-per-minute: 60
+    trust-forwarded-header: ${RATE_LIMIT_TRUST_XFF:false}   # enable only behind a trusted proxy
+    max-tracked-clients: 100000
+  http:
+    connect-timeout: ${HTTP_CONNECT_TIMEOUT:5s}
+    read-timeout: ${HTTP_READ_TIMEOUT:60s}
   ingest:
     max-file-size-bytes: 10485760
     allowed-content-types:

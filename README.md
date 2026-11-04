@@ -67,3 +67,13 @@ docs/                            documentation (this folder)
 scripts/                         build/smoke/e2e helper scripts
 Dockerfile                       multi-stage, offline embeddings, non-root runtime
 ```
+
+
+## Author
+
+Created by **Andrii Lisovets** (andrii.lisovets@gmail.com).
+
+## License
+
+Released under the [MIT License](LICENSE) — © 2026 Andrii Lisovets. Free to use, modify,
+and distribute; see [`LICENSE`](LICENSE) for the full text.

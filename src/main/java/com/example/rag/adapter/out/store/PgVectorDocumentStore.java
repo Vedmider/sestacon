@@ -16,8 +16,9 @@ import java.util.Set;
 
 /**
  * {@link DocumentStore} backed by Spring AI's pgvector {@link VectorStore}. Dense-vector
- * retrieval only; it does not enforce RBAC (the {@code roles} argument is ignored). For
- * full-text + RBAC + RRF, select the hybrid store via {@code app.retrieval.mode=hybrid}.
+ * retrieval with adapter-side RBAC: results are filtered by their {@code aclTags} metadata
+ * against the caller's roles (public/untagged chunks are visible to everyone). For
+ * full-text + RBAC + RRF in one SQL round-trip, select {@code app.retrieval.mode=hybrid}.
  */
 public class PgVectorDocumentStore implements DocumentStore {
 

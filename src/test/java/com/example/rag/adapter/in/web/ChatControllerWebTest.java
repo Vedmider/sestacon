@@ -86,13 +86,12 @@ class ChatControllerWebTest {
     }
 
     @Test
-    void downstreamFailureIsNotSwallowed() {
+    void downstreamFailureReturns500WithoutLeakingDetails() throws Exception {
         when(ragQuery.answer(eq("boom"), anyList())).thenThrow(new RuntimeException("LLM unavailable"));
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
-                        mockMvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"question\":\"boom\"}")))
-                .hasRootCauseInstanceOf(RuntimeException.class)
-                .hasRootCauseMessage("LLM unavailable");
+        mockMvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"boom\"}"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.detail").value("Internal server error"));
     }
 }

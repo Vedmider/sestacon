@@ -22,3 +22,28 @@ WARNING: using a placeholder LLM API key. Provide a real key with:
   kubectl create secret generic my-llm-key --from-literal={{ .Values.app.secrets.llmApiKey.key }}=<KEY>
   helm upgrade ... --set app.secrets.llmApiKey.existingSecret=my-llm-key
 {{- end }}
+
+
+
+------------------------------------------------------------------------------
+SECURITY — review before exposing beyond a trusted network:
+{{- if not .Values.ingress.tls }}
+  [!] Ingress TLS is OFF. Terminate TLS at the ingress/gateway.
+{{- end }}
+{{- if not .Values.app.secrets.llmApiKey.existingSecret }}
+  [!] LLM API key uses the chart-generated placeholder Secret. Provide your own via
+      app.secrets.llmApiKey.existingSecret.
+{{- end }}
+{{- if not .Values.postgres.auth.existingSecret }}
+  [!] PostgreSQL uses the default in-values password. Set postgres.auth.existingSecret.
+{{- end }}
+{{- if not .Values.redis.auth.enabled }}
+  [!] Redis auth is OFF. Enable redis.auth for shared clusters.
+{{- end }}
+{{- if not .Values.networkPolicy.enabled }}
+  [!] NetworkPolicy is OFF. Enable networkPolicy to restrict pod traffic.
+{{- end }}
+  [!] There is NO application authentication. The X-Roles header is trusted as sent —
+      put an authenticating gateway (OIDC/JWT/mTLS) in front and strip inbound X-Roles.
+  Metrics/actuator are on an internal-only port ({{ .Values.app.managementPort }}), not routed by the Ingress.
+------------------------------------------------------------------------------

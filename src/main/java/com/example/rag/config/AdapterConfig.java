@@ -19,9 +19,13 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.client.ClientHttpRequestFactories;
+import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
+import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -52,13 +56,29 @@ public class AdapterConfig {
     @Bean
     @ConditionalOnMissingBean(EmbeddingProvider.class)
     @ConditionalOnProperty(name = "app.embedding.provider", havingValue = "openai")
-    EmbeddingProvider openAiEmbeddingProvider(EmbeddingProperties props) {
-        RestClient.Builder builder = RestClient.builder().baseUrl(props.getOpenai().getBaseUrl());
+    EmbeddingProvider openAiEmbeddingProvider(EmbeddingProperties props, HttpClientProperties http) {
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl(props.getOpenai().getBaseUrl())
+                .requestFactory(timeoutFactory(http));
         if (StringUtils.hasText(props.getOpenai().getApiKey())) {
             builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + props.getOpenai().getApiKey());
         }
         return new OpenAiEmbeddingProvider(builder.build(), props.getOpenai().getModel(),
                 props.getDimensions());
+    }
+
+    /** Applies connect/read timeouts to every autoconfigured RestClient — including the
+     *  one Spring AI builds for the chat model — so a hung upstream can't pin threads. */
+    @Bean
+    RestClientCustomizer httpTimeoutCustomizer(HttpClientProperties http) {
+        ClientHttpRequestFactory factory = timeoutFactory(http);
+        return builder -> builder.requestFactory(factory);
+    }
+
+    private static ClientHttpRequestFactory timeoutFactory(HttpClientProperties http) {
+        return ClientHttpRequestFactories.get(ClientHttpRequestFactorySettings.DEFAULTS
+                .withConnectTimeout(http.getConnectTimeout())
+                .withReadTimeout(http.getReadTimeout()));
     }
 
     @Bean
