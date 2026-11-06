@@ -24,6 +24,8 @@ learning path, suitable for self-study or teaching.
 
 ## Other
 - [Implementation Plan](rag-app-plan.md) — original design/plan document.
+- [Learning Materials](learning/README.md) — knowledge base on the concepts, the two-app
+  architecture, decisions (ADRs), and real-world systems (Aider, Cursor, Cody, …) these apps build on.
 
 ---
 
