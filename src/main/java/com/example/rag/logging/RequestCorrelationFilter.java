@@ -1,5 +1,6 @@
 package com.example.rag.logging;
 
+import com.example.rag.http.ClientIp;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,7 +37,7 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
             requestId = UUID.randomUUID().toString();
         }
         MDC.put("requestId", requestId);
-        MDC.put("clientIp", clientIp(request));
+        MDC.put("clientIp", ClientIp.of(request));
         MDC.put("method", request.getMethod());
         MDC.put("path", request.getRequestURI());
         response.setHeader(REQUEST_ID, requestId);
@@ -50,13 +51,5 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
             log.info("event=http_request status={} durationMs={}", response.getStatus(), ms);
             MDC.clear();
         }
-    }
-
-    private static String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (StringUtils.hasText(forwarded)) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

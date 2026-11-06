@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -57,7 +56,7 @@ public class RetrieveController {
                             + " characters");
         }
         return retrieve.retrieve(request.query(), effectiveTopK(request.topK()),
-                parseRoles(rolesHeader));
+                RoleHeader.parse(rolesHeader));
     }
 
     private int effectiveTopK(Integer requested) {
@@ -65,16 +64,6 @@ public class RetrieveController {
             return ragProperties.getTopK();
         }
         return Math.min(requested, MAX_TOP_K);
-    }
-
-    private static List<String> parseRoles(String header) {
-        if (!StringUtils.hasText(header)) {
-            return List.of();
-        }
-        return Arrays.stream(header.split(","))
-                .map(String::trim)
-                .filter(StringUtils::hasText)
-                .toList();
     }
 
     public record RetrieveRequest(String query, Integer topK) {

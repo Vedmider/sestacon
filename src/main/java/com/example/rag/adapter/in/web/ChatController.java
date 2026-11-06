@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
-import java.util.List;
-
 /** Inbound HTTP adapter for RAG queries. Maps HTTP to the {@link RagQueryUseCase}. */
 @RestController
 @RequestMapping("/api/chat")
@@ -46,17 +43,7 @@ public class ChatController {
                     "question exceeds max length of " + ragProperties.getMaxQuestionLength()
                             + " characters");
         }
-        return ragQuery.answer(request.question(), parseRoles(rolesHeader));
-    }
-
-    private static List<String> parseRoles(String header) {
-        if (!StringUtils.hasText(header)) {
-            return List.of();
-        }
-        return Arrays.stream(header.split(","))
-                .map(String::trim)
-                .filter(StringUtils::hasText)
-                .toList();
+        return ragQuery.answer(request.question(), RoleHeader.parse(rolesHeader));
     }
 
     public record ChatRequest(String question) {

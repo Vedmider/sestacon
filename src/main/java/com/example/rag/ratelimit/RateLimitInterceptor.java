@@ -1,10 +1,10 @@
 package com.example.rag.ratelimit;
 
+import com.example.rag.http.ClientIp;
 import com.example.rag.logging.SecurityAudit;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class RateLimitInterceptor implements HandlerInterceptor {
@@ -32,12 +32,6 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     // XFF is spoofable, so trust it only behind a known proxy (opt-in); otherwise use the
     // socket peer address, which a client cannot forge.
     private String clientKey(HttpServletRequest request) {
-        if (trustForwardedHeader) {
-            String forwarded = request.getHeader("X-Forwarded-For");
-            if (StringUtils.hasText(forwarded)) {
-                return forwarded.split(",")[0].trim();
-            }
-        }
-        return request.getRemoteAddr();
+        return trustForwardedHeader ? ClientIp.of(request) : request.getRemoteAddr();
     }
 }

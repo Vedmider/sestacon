@@ -57,6 +57,7 @@ app:
   retrieval:
     mode: ${RETRIEVAL_MODE:vector}          # vector | hybrid
     rrf-k: ${RETRIEVAL_RRF_K:60}
+    recall-factor: ${RETRIEVAL_RECALL_FACTOR:4}  # first-pass width = topK * factor, then rerank
     text-search-config: ${RETRIEVAL_TS_CONFIG:english}
   embedding:
     provider: ${EMBEDDING_PROVIDER:local}   # local | openai
@@ -85,6 +86,7 @@ app:
     connect-timeout: ${HTTP_CONNECT_TIMEOUT:5s}
     read-timeout: ${HTTP_READ_TIMEOUT:60s}
   ingest:
+    contextual: ${INGEST_CONTEXTUAL:true}   # prepend [doc > section] header to each chunk
     max-file-size-bytes: 10485760
     allowed-content-types:
       - application/pdf
