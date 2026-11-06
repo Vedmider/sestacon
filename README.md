@@ -11,6 +11,24 @@ ask questions answered **grounded in those documents** with source attribution.
   rate limiting, Prometheus metrics, non-root/read-only containers
 - **One Helm chart** deploys the app + PostgreSQL/pgvector + Redis
 
+## What it's for / what questions it answers
+
+rag-app is the **document & knowledge layer**: upload prose (product docs, runbooks, design notes,
+skills, agent definitions, conventions) and ask natural-language questions answered *grounded in
+those documents*, with source attribution. It is the "what / why / which" brain — not a code index.
+
+Use it to answer:
+- "How does rate limiting work in this product?" → the relevant doc/runbook passage + source.
+- "Which agent decomposes a Jira epic into subtasks?" → the matching agent/skill definition.
+- "What's our convention for PII redaction / retry / logging?" → the governing doc section.
+- "Explain the caching strategy." → the design-note chunk that describes it.
+- "Answer this question using only our docs." → RAG answer (via the chat path) or raw grounded
+  chunks (via the retrieve-only path, token-cheap for an agent that reasons itself).
+
+Not the right tool for: "where is method X defined", exact code spans, or uncommitted edits — that is
+code-memory (fuzzy code recall) and context-mcp (exact code + live git). See
+`context-mcp/docs/ARCHITECTURE-THREE-APPS.md` for how the three compose.
+
 ## Run locally (Docker)
 
 Clone, then one script brings up the whole stack (app + pgvector + Redis) as throwaway
