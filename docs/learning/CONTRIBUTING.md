@@ -7,7 +7,7 @@
   [`concepts/`](concepts/).
 - App pages ([`apps/`](apps/)) describe only **this app's choices and flow**, and **link**
   to the concept page for the generic explanation.
-- Example: `apps/rag-app.md` says *"uses a chunker ([what/why/how](concepts/chunking.md))
+- Example: `apps/sestacon.md` says *"uses a chunker ([what/why/how](concepts/chunking.md))
   configured for prose"* — it does **not** re-explain chunking.
 
 ## Cross-links ("locator links")
@@ -28,6 +28,6 @@ Real-world pages: **What it is · Approach · What we borrow · Related.**
 ```
 concepts/   general, reusable — single source of truth
 real-world/ closest external systems + their approach
-apps/       rag-app, code-memory, combined architecture
+apps/       Sestacon, code-memory, combined architecture
 decisions/  ADRs
 ```

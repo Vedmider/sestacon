@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sestacon
+description: Production-ready RAG application (Spring AI + pgvector) with PostgreSQL and Redis
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

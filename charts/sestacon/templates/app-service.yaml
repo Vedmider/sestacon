@@ -1,0 +1,29 @@
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "sestacon.serviceAccountName" . }}
+  labels:
+    {{- include "sestacon.labels" . | nindent 4 }}
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sestacon.fullname" . }}
+  labels:
+    {{- include "sestacon.labels" . | nindent 4 }}
+    {{- include "sestacon.selectorLabels" (dict "ctx" . "component" "app") | nindent 4 }}
+spec:
+  type: {{ .Values.app.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.app.service.port }}
+      targetPort: http
+      protocol: TCP
+    - name: management
+      port: {{ .Values.app.managementPort }}
+      targetPort: management
+      protocol: TCP
+  selector:
+    {{- include "sestacon.selectorLabels" (dict "ctx" . "component" "app") | nindent 4 }}

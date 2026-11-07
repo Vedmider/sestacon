@@ -23,7 +23,7 @@ kind load docker-image "$REDIS_IMG" --name "$CLUSTER" || fail "load redis"
 
 echo "== helm install =="
 kubectl create namespace $NS --dry-run=client -o yaml | kubectl apply -f -
-helm upgrade --install $REL "$REPO/charts/rag-app" -n $NS \
+helm upgrade --install $REL "$REPO/charts/sestacon" -n $NS \
   --set ingress.enabled=false \
   --set global.registry.url="$MIRROR" \
   --set app.image.registry="docker.io" --set app.image.repository="library" \
@@ -35,14 +35,14 @@ helm upgrade --install $REL "$REPO/charts/rag-app" -n $NS \
   || fail "helm install"
 
 echo "== wait for postgres + redis =="
-kubectl -n $NS rollout status statefulset/$REL-rag-app-postgres --timeout=180s || fail "postgres not ready"
-kubectl -n $NS rollout status deploy/$REL-rag-app-redis --timeout=120s || fail "redis not ready"
+kubectl -n $NS rollout status statefulset/$REL-sestacon-postgres --timeout=180s || fail "postgres not ready"
+kubectl -n $NS rollout status deploy/$REL-sestacon-redis --timeout=120s || fail "redis not ready"
 
 echo "== wait for app (embeddings load from baked cache; give it time) =="
-kubectl -n $NS rollout status deploy/$REL-rag-app --timeout=240s || fail "app not ready"
+kubectl -n $NS rollout status deploy/$REL-sestacon --timeout=240s || fail "app not ready"
 
 echo "== port-forward =="
-kubectl -n $NS port-forward svc/$REL-rag-app 18080:8080 >/tmp/pf.log 2>&1 &
+kubectl -n $NS port-forward svc/$REL-sestacon 18080:8080 >/tmp/pf.log 2>&1 &
 PF=$!
 sleep 6
 
@@ -54,7 +54,7 @@ curl -sS -m 30 -F files=@/tmp/fact.txt localhost:18080/api/ingest && echo
 echo "== metrics present =="
 curl -sS -m 10 localhost:18080/actuator/prometheus | grep -E "rag_query_latency|rag_cache|rag_llm_tokens" | head
 echo "== verify chunks stored in pgvector =="
-kubectl -n $NS exec statefulset/$REL-rag-app-postgres -- psql -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT count(*) FROM vector_store;" 2>/dev/null
+kubectl -n $NS exec statefulset/$REL-sestacon-postgres -- psql -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT count(*) FROM vector_store;" 2>/dev/null
 
 kill $PF 2>/dev/null
 echo "E2E CORE CHECKS DONE"

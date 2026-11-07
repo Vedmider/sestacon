@@ -11,10 +11,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.example.rag</groupId>
-    <artifactId>rag-app</artifactId>
+    <groupId>io.github.vedmider</groupId>
+    <artifactId>sestacon</artifactId>
     <version>0.1.0</version>
-    <name>rag-app</name>
+    <name>sestacon</name>
     <description>Production-ready RAG application (Spring AI + pgvector)</description>
 
     <licenses>

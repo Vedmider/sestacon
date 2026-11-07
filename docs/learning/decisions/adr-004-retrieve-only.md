@@ -3,7 +3,7 @@
 **Status:** accepted
 
 ## Context
-`rag-app` was built as `ingest → /chat → search → LLM → answer`. For the developer-helper
+`Sestacon` was built as `ingest → /chat → search → LLM → answer`. For the developer-helper
 use case the agent (kiro) is already an LLM.
 
 ## Decision
@@ -14,7 +14,7 @@ Both apps expose a **[retrieve-only](../concepts/retrieve-only-vs-chat.md)** pat
 - No second LLM to pay for; retrieval can't edit files/run tools anyway.
 - Token savings: return small chunks/[locators](../concepts/locator-search.md), skip
   LLM answer + [guardrails](../concepts/guardrails.md).
-- `rag-app` keeps `/chat` for the original doc-Q&A use case — additive, not a rewrite.
+- `Sestacon` keeps `/chat` for the original doc-Q&A use case — additive, not a rewrite.
 
 ## Related
 [Retrieve-only vs chat](../concepts/retrieve-only-vs-chat.md) ·

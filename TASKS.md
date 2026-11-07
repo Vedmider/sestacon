@@ -1,7 +1,7 @@
 # RAG — Tasks & Roadmap
 
 Standing context: two apps for AI code refactoring with low token usage.
-- **`rag-app`** (static/doc) = existing Spring AI + pgvector app, Redis hot tier; returns
+- **`Sestacon`** (static/doc) = existing Spring AI + pgvector app, Redis hot tier; returns
   **chunk text**. Holds requirements, skills, conventions, architecture, class-purpose.
   → **Task 1**.
 - **`code-memory`** (dynamic/code) = a *different* service (locator index); returns
@@ -13,7 +13,7 @@ Standing context: two apps for AI code refactoring with low token usage.
 
 ---
 
-## Task 1 — `rag-app`: add `/retrieve` endpoint (retrieve-only, no LLM)
+## Task 1 — `Sestacon`: add `/retrieve` endpoint (retrieve-only, no LLM)
 
 **Goal:** expose the first half of the RAG chain so kiro gets chunks/locators without
 spending LLM tokens.
@@ -53,7 +53,7 @@ made on that path. Add a web test asserting no `ChatProvider` invocation.
 ## Task 2 — `code-memory`: git-based auto-sync for the locator index
 
 **App:** `/local/IdeaProjects/code-memory` (Java 21 / Spring / pgvector, hexagonal — sibling
-of `rag-app`) + a Go `chunking-service` sidecar. **It already exists and is mostly built.**
+of `Sestacon`) + a Go `chunking-service` sidecar. **It already exists and is mostly built.**
 Task 2 is now a *targeted addition* (git-driven sync), not a rebuild.
 
 ### Already done (do NOT rebuild)
@@ -75,7 +75,7 @@ Task 2 is now a *targeted addition* (git-driven sync), not a rebuild.
 - **GAP B — no change detection.** No per-file hash, no repo cursor (SHA). `indexPath`
   re-parses *every* file every run (no skip-unchanged).
 - **GAP C — line-range freshness.** Locators carry line numbers → **any** edit shifts them →
-  reindex the whole touched file. (The "skip body-only change" rule is a `rag-app`/static-tier
+  reindex the whole touched file. (The "skip body-only change" rule is a `Sestacon`/static-tier
   concern, NOT here.)
 - **GAP D (optional) — graph is enrichment, not ranking.** No PageRank weighting (Aider/
   Sourcegraph do). Defer.
@@ -160,7 +160,7 @@ committed deltas always sync.
 
 **Goal:** a browsable knowledge base so any part of either app can be looked up. No
 duplication: shared concepts live once in a **general concepts** section; app docs **link**
-to them (e.g. rag-app's chunking section links to `concepts/chunking.md`).
+to them (e.g. Sestacon's chunking section links to `concepts/chunking.md`).
 
 **Proposed repo layout:**
 ```
@@ -188,10 +188,10 @@ rag-learning/
     llamaindex-router.md         # multi-index + RouterQueryEngine pattern
     comparison-table.md          # our schema vs each (the table we built)
   apps/
-    rag-app.md                   # static/doc: general purpose, arch decisions, e2e API,
+    Sestacon.md                   # static/doc: general purpose, arch decisions, e2e API,
                                  #   how it works → links to concepts/* (no re-explaining)
     code-memory.md               # locator index: purpose, arch, indexer, /retrieve, sync
-    two-app-architecture.md      # rag-app + code-memory combined schema, inbound/outbound,
+    two-app-architecture.md      # Sestacon + code-memory combined schema, inbound/outbound,
                                  #   RAM/disk tiering
   decisions/                     # ADRs
     adr-001-two-rag-split.md
@@ -202,7 +202,7 @@ rag-learning/
 
 **Authoring rule (no duplication):** app pages describe *this app's* choices and flow, and
 **link** to `concepts/<x>.md` for the generic explanation.
-Example: `apps/rag-app.md` → "Uses a chunker ([what/why/how](../concepts/chunking.md))
+Example: `apps/Sestacon.md` → "Uses a chunker ([what/why/how](../concepts/chunking.md))
 configured as …". The *definition* of chunking lives only in `concepts/chunking.md`.
 
 **Must-have lookups (acceptance):** I can find, each on its own page/anchor:
@@ -211,14 +211,14 @@ structural ranking · incremental indexing · RBAC retrieval · guardrails · Re
 retrieve-only vs chat · and each real-world match's approach.
 
 **Seed content:** port the two existing briefings as starting material —
-- `rag-app` review findings + endpoint map → `apps/rag-app.md`
+- `Sestacon` review findings + endpoint map → `apps/Sestacon.md`
 - `batch-manager-briefing/` style depth as the template for structure
 - the real-world comparison table we built → `real-world/comparison-table.md`.
 
 ---
 
 ### Status
-- [x] Task 1 — `rag-app`: `/retrieve` endpoint — done (rate-limited; 86 tests green)
+- [x] Task 1 — `Sestacon`: `/retrieve` endpoint — done (rate-limited; 86 tests green)
 - [ ] Task 2 — `code-memory`: git-based auto-sync (read-gate + hooks + `code_files`/`repo_state`
       hash; locators already done). MVP steps in §Task 2.
 - [ ] Task 3 — `rag-learning` repo (concepts-linked, no duplication)

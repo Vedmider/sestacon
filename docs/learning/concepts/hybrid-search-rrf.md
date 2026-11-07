@@ -16,12 +16,12 @@ exact terms but misses paraphrase. Fusing both beats either alone.
    score. Rank-based, so the two score scales don't need normalising.
 4. Apply [RBAC](rbac-retrieval.md) filtering **before** ranking.
 
-In `rag-app` this is one SQL round-trip (`app.retrieval.mode=hybrid`) using a `FULL OUTER
+In `Sestacon` this is one SQL round-trip (`app.retrieval.mode=hybrid`) using a `FULL OUTER
 JOIN` of the vec and txt CTEs.
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): `HybridPgDocumentStore` (vector + tsvector + RBAC + RRF).
+- [`Sestacon`](../apps/sestacon.md): `HybridPgDocumentStore` (vector + tsvector + RBAC + RRF).
 
 ## Related
 [pgvector](pgvector.md) · [Embeddings](embeddings.md) · [RBAC retrieval](rbac-retrieval.md) ·
-[`rag-app`](../apps/rag-app.md)
+[`Sestacon`](../apps/sestacon.md)

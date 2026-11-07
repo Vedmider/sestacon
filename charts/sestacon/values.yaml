@@ -1,0 +1,181 @@
+global:
+  registry:
+    url: ""              # overrides every component's image.registry when set
+  pullSecret: ""         # imagePullSecret name applied to all pods
+  imagePullPolicy: IfNotPresent
+  storageClass: ""       # overrides persistence.storageClass everywhere
+
+nameOverride: ""
+replicaCount: 1
+
+# ---- Java RAG app ----
+app:
+  image:
+    registry: docker.io
+    repository: your-org
+    name: sestacon
+    tag: ""              # defaults to Chart.appVersion when empty
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  # Actuator/metrics listen on a SEPARATE internal port, exposed on the Service (for
+  # Prometheus) and used by the probes, but NOT routed by the Ingress — so /actuator
+  # (health, info, prometheus) is never reachable from outside the cluster.
+  managementPort: 8081
+  config:
+    llm:
+      baseUrl: "https://api.groq.com/openai"
+      model: "openai/gpt-oss-20b"
+    retrieval:
+      mode: vector                 # vector (dense only) | hybrid (vector+full-text+RBAC+RRF)
+      rrfK: 60                     # Reciprocal Rank Fusion constant
+      textSearchConfig: english    # PostgreSQL text-search config for full-text mode
+    embedding:
+      provider: local              # local (bundled ONNX) | openai (external API)
+      dimensions: 384              # must match the model AND the pgvector column
+      local:
+        modelUri: "classpath:/onnx/all-MiniLM-L6-v2/model.onnx"
+        tokenizerUri: "classpath:/onnx/all-MiniLM-L6-v2/tokenizer.json"
+        modelOutputName: "last_hidden_state"
+      openai:
+        baseUrl: "https://api.openai.com"
+        model: "text-embedding-3-small"
+    cache:
+      similarityThreshold: 0.95
+    rateLimit:
+      requestsPerMinute: 60
+  secrets:
+    llmApiKey:
+      existingSecret: ""   # name of a pre-created Secret holding the API key
+      key: "api-key"       # key within that Secret
+    embeddingApiKey:
+      existingSecret: ""   # only used when embedding.provider=openai
+      key: "api-key"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  probes:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+# ---- PostgreSQL + pgvector ----
+postgres:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: pgvector
+    name: pgvector
+    tag: "pg16"
+    pullPolicy: IfNotPresent
+  auth:
+    database: ragdb
+    username: rag
+    password: "rag"       # used only when existingSecret is empty
+    existingSecret: ""     # if set, password read from it instead
+    passwordKey: postgres-password
+  service:
+    port: 5432
+  persistence:
+    enabled: true
+    storageClass: ""       # falls back to global.storageClass
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+# ---- Redis (semantic cache) ----
+redis:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: library
+    name: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    enabled: false
+    password: ""
+    existingSecret: ""
+    passwordKey: redis-password
+  service:
+    port: 6379
+  persistence:
+    enabled: false
+    storageClass: ""
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# ---- Ingress ----
+ingress:
+  enabled: true
+  className: nginx
+  host: rag.local
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: ""
+  auth:
+    basic:
+      enabled: false       # optional basic-auth (htpasswd) Secret
+      secretName: ""
+
+# ---- Autoscaling (app only) ----
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+serviceAccount:
+  create: true
+  name: ""
+
+networkPolicy:
+  enabled: false
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false         # Prometheus Operator ServiceMonitor
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 10000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

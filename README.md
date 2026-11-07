@@ -13,7 +13,7 @@ ask questions answered **grounded in those documents** with source attribution.
 
 ## What it's for / what questions it answers
 
-rag-app is the **document & knowledge layer**: upload prose (product docs, runbooks, design notes,
+Sestacon is the **document & knowledge layer**: upload prose (product docs, runbooks, design notes,
 skills, agent definitions, conventions) and ask natural-language questions answered *grounded in
 those documents*, with source attribution. It is the "what / why / which" brain — not a code index.
 
@@ -26,8 +26,8 @@ Use it to answer:
   chunks (via the retrieve-only path, token-cheap for an agent that reasons itself).
 
 Not the right tool for: "where is method X defined", exact code spans, or uncommitted edits — that is
-code-memory (fuzzy code recall) and context-mcp (exact code + live git). See
-`context-mcp/docs/ARCHITECTURE-THREE-APPS.md` for how the three compose.
+code-memory (fuzzy code recall) and Dylext (exact code + live git). See
+`Dylext/docs/ARCHITECTURE-THREE-APPS.md` for how the three compose.
 
 ## Run locally (Docker)
 
@@ -93,7 +93,7 @@ curl -XPOST http://localhost:8080/api/chat \
 ## Deploy
 
 ```bash
-helm install rag ./charts/rag-app -n rag --create-namespace
+helm install rag ./charts/sestacon -n rag --create-namespace
 # then supply a real LLM key (see docs/deployment.md)
 ```
 
@@ -106,7 +106,7 @@ checklist.
 src/main/java/com/example/rag/   app code (ingest, chat, cache, guardrail, ratelimit, metrics)
 src/main/resources/              application.yml + vendored ONNX model
 src/test/java/com/example/rag/   unit (*Test) and Testcontainers integration (*IT) tests
-charts/rag-app/                  Helm chart (app + PostgreSQL/pgvector + Redis)
+charts/sestacon/                  Helm chart (app + PostgreSQL/pgvector + Redis)
 docs/                            documentation (this folder)
 scripts/                         build/smoke/e2e helper scripts
 Dockerfile                       multi-stage, offline embeddings, non-root runtime

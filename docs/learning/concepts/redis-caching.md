@@ -20,7 +20,7 @@ leverage.
 Caveat: Redis is then a critical dependency (lock/cache/bus in some designs) — prefer HA.
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): `RedisAnswerCache` + hot static tier.
+- [`Sestacon`](../apps/sestacon.md): `RedisAnswerCache` + hot static tier.
 
 ## Related
 [Incremental indexing](incremental-indexing.md) · [Embeddings](embeddings.md) ·

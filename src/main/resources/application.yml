@@ -1,6 +1,6 @@
 spring:
   application:
-    name: rag-app
+    name: sestacon
   profiles:
     active: dev
   datasource:
@@ -111,7 +111,7 @@ management:
 logging:
   level:
     root: INFO
-    com.example.rag: INFO
+    io.github.vedmider.sestacon: INFO
     SECURITY: INFO
 
 ---

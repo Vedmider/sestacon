@@ -1,6 +1,6 @@
 # RAG Learning
 
-Knowledge base for our two retrieval apps — **`rag-app`** (static/doc) and
+Knowledge base for our two retrieval apps — **`Sestacon`** (static/doc) and
 **`code-memory`** (dynamic/code locator index) — plus the general concepts and real-world
 systems they build on.
 
@@ -9,8 +9,8 @@ concepts are explained **once** under [`concepts/`](concepts/) — app pages lin
 instead of repeating. See [CONTRIBUTING](CONTRIBUTING.md) for the no-duplication rule.
 
 ## Start here
-- [Two-app architecture](apps/two-app-architecture.md) — the big picture (rag-app + code-memory)
-- [`rag-app`](apps/rag-app.md) — static/doc retrieval
+- [Two-app architecture](apps/two-app-architecture.md) — the big picture (Sestacon + code-memory)
+- [`Sestacon`](apps/sestacon.md) — static/doc retrieval
 - [`code-memory`](apps/code-memory.md) — code locator index
 
 ## Concepts (single source of truth)

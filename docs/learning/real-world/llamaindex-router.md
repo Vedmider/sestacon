@@ -11,7 +11,7 @@ picks which index to query per request.
 
 ## What we borrow
 The **two-store + router** pattern underpinning our design: kiro (the agent) is effectively
-the router, calling [`rag-app`](../apps/rag-app.md) for conventions and
+the router, calling [`Sestacon`](../apps/sestacon.md) for conventions and
 [`code-memory`](../apps/code-memory.md) for code locators, then merging.
 
 ## Related

@@ -11,7 +11,7 @@
 MIRROR="${MIRROR:-docker.io}"
 
 # The built application image (name:tag). Also exposed split for Helm/kind.
-APP_IMAGE_NAME="${APP_IMAGE_NAME:-rag-app}"
+APP_IMAGE_NAME="${APP_IMAGE_NAME:-sestacon}"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-0.1.0}"
 APP_IMAGE="${APP_IMAGE:-${APP_IMAGE_NAME}:${APP_IMAGE_TAG}}"
 

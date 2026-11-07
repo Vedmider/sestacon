@@ -1,11 +1,11 @@
-# Skill: rag-app — document & knowledge retrieval
+# Skill: Sestacon — document & knowledge retrieval
 
-Provider-agnostic guidance for an AI agent on using **rag-app**. Reformat the frontmatter/wrapper
+Provider-agnostic guidance for an AI agent on using **Sestacon**. Reformat the frontmatter/wrapper
 for your own assistant; the body is the skill.
 
 ## What this app is
 
-rag-app answers **natural-language questions grounded in prose documents** (product docs, runbooks,
+Sestacon answers **natural-language questions grounded in prose documents** (product docs, runbooks,
 design notes, skills/agent definitions, conventions) with **source attribution**. It embeds document
 text with a real model and retrieves the most relevant chunks. It is the "what / why / which" layer —
 **not** a code index.
@@ -27,10 +27,10 @@ Endpoints:
 
 ## When NOT to use it
 
-- "Where is method/class X in the code?" → use **code-memory** (fuzzy) or **context-mcp** (exact).
-- You need an exact source span, a symbol's body, callers/tests, or uncommitted edits → **context-mcp**.
+- "Where is method/class X in the code?" → use **code-memory** (fuzzy) or **Dylext** (exact).
+- You need an exact source span, a symbol's body, callers/tests, or uncommitted edits → **Dylext**.
 - Arbitrary text/regex, logs, config, or unindexed files → use **grep/ripgrep**.
-- The knowledge isn't in the ingested documents → rag-app only knows what's been ingested; don't
+- The knowledge isn't in the ingested documents → Sestacon only knows what's been ingested; don't
   expect world knowledge or un-ingested code facts.
 
 ## How to use well
@@ -45,15 +45,15 @@ Endpoints:
 
 ## Fits with the other two apps
 
-concept/docs → **rag-app** · fuzzy "where is the code" → **code-memory** · exact code + live edits →
-**context-mcp**. In the unified setup, context-mcp's `explain` tool delegates here.
+concept/docs → **Sestacon** · fuzzy "where is the code" → **code-memory** · exact code + live edits →
+**Dylext**. In the unified setup, Dylext's `explain` tool delegates here.
 
 
 ---
 
 ## ⚠️ PREREQUISITE — ingest the repo's explanatory content BEFORE working
 
-> **Before reasoning about a repo, its explanatory content MUST be in rag-app.** This is how the
+> **Before reasoning about a repo, its explanatory content MUST be in Sestacon.** This is how the
 > AI "realizes why the repo exists, its structure, and which part maps to which functionality" —
 > the same orientation a human does before editing. If that content is absent, **ingest it first.**
 
@@ -73,4 +73,4 @@ Then retrieval works as a lookup by stable id (findable + replaceable, like a da
 - Re-ingest (same `documentId`) whenever the repo's structure changes materially.
 
 Skip this and the AI will navigate code blind to intent — exactly the orientation step a human never
-skips. The code-location tools (code-memory, context-mcp) tell you *where*; this tells you *why*.
+skips. The code-location tools (code-memory, Dylext) tell you *where*; this tells you *why*.

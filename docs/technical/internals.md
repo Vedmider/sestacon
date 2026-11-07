@@ -1,7 +1,7 @@
 # Internals
 
 Package and class design, the RAG pipeline step by step, and the core algorithms.
-Base package: `com.example.rag`.
+Base package: `io.github.vedmider.sestacon`.
 
 ## Bootstrap
 

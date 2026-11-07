@@ -21,7 +21,7 @@ bytes from disk.
 
 ## In our apps
 - [`code-memory`](../apps/code-memory.md): locator projection is the whole point.
-- [`rag-app`](../apps/rag-app.md): returns **text** chunks (docs are stable, so text is fine);
+- [`Sestacon`](../apps/sestacon.md): returns **text** chunks (docs are stable, so text is fine);
   same `/retrieve` endpoint shape, different projection.
 
 ## Related

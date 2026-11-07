@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/claude/ask-use-rag-app.sh"
+            "command": "bash hooks/claude/ask-use-sestacon.sh"
           }
         ]
       }

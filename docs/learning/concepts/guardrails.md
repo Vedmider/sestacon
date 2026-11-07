@@ -8,7 +8,7 @@ Safety filters around a RAG query: **prompt-injection detection**, **PII redacti
 RAG mixes untrusted inputs: the user question *and* retrieved context (which may itself carry
 injected instructions — "indirect" injection). Guardrails reduce leakage and manipulation.
 
-## How it works (as in `rag-app`)
+## How it works (as in `Sestacon`)
 - **Prompt-injection detector:** regex patterns ("ignore previous instructions", "reveal
   system prompt", …) — run on the question **and** on retrieved chunks (indirect-injection
   defense). Best-effort, English, bypassable → defense-in-depth, not a guarantee.
@@ -20,8 +20,8 @@ Note: guardrails matter on the **[/chat](retrieve-only-vs-chat.md)** (LLM) path.
 retrieve-only dev path there is no LLM, so they are lighter/irrelevant.
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): full guardrail chain on `/chat`.
+- [`Sestacon`](../apps/sestacon.md): full guardrail chain on `/chat`.
 
 ## Related
 [Retrieve-only vs chat](retrieve-only-vs-chat.md) · [RBAC retrieval](rbac-retrieval.md) ·
-[`rag-app`](../apps/rag-app.md)
+[`Sestacon`](../apps/sestacon.md)

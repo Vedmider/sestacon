@@ -12,8 +12,8 @@ documentation) and **`@codebase`** (local code retrieval).
 ## What we borrow
 The most **literal match** to our design: a **static doc source** +
 a **dynamic code source** as separate providers — exactly
-[`rag-app`](../apps/rag-app.md) + [`code-memory`](../apps/code-memory.md).
+[`Sestacon`](../apps/sestacon.md) + [`code-memory`](../apps/code-memory.md).
 
 ## Related
 [Two-app architecture](../apps/two-app-architecture.md) ·
-[`rag-app`](../apps/rag-app.md) · [Comparison table](comparison-table.md)
+[`Sestacon`](../apps/sestacon.md) · [Comparison table](comparison-table.md)

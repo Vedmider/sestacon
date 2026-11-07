@@ -8,7 +8,7 @@ and wipes everything on stop.
 ## Quick start (clone → up → test)
 
 ```bash
-git clone <repo-url> && cd rag-app
+git clone <repo-url> && cd Sestacon
 export OPENAI_API_KEY=<your-key>        # only needed for /api/chat answers
 bash scripts/dev-local.sh up            # downloads the model if missing, builds, starts
 ```

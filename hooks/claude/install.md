@@ -1,19 +1,19 @@
 # Hard enforcement (opt-in) — Claude Code
 
 The usage policy in [`../../AGENTS.md`](../../AGENTS.md) is advisory: an autonomous agent *should*
-answer conceptual "what / why / which" questions from rag-app (grounded in your docs) rather than
-guessing from raw `grep`. If you observe it skipping rag-app, this adds a **speed bump** — not a cage.
+answer conceptual "what / why / which" questions from Sestacon (grounded in your docs) rather than
+guessing from raw `grep`. If you observe it skipping Sestacon, this adds a **speed bump** — not a cage.
 
 ## What it does
 
 Registers a Claude Code **`PreToolUse`** hook on the native **`Grep`** and **`Glob`** tools. Before
 either runs, the hook returns a `permissionDecision: "ask"` — Claude pauses and asks you to confirm,
-with a reason: if the question is conceptual, answer it from rag-app's `/api/retrieve` (grounded,
+with a reason: if the question is conceptual, answer it from Sestacon's `/api/retrieve` (grounded,
 with sources); if it's a literal/code/log/config search, confirm and proceed.
 
-- It **asks**, it does not **block**. This matters more here than for a code index: rag-app only
+- It **asks**, it does not **block**. This matters more here than for a code index: Sestacon only
   knows what's been ingested, and plenty of searches (code, logs, config, literal strings) are
-  genuinely not rag-app's job. A hard block would be wrong most of the time. The hook's value is the
+  genuinely not Sestacon's job. A hard block would be wrong most of the time. The hook's value is the
   *prompt to reconsider*, not a prohibition.
 - It touches only `Grep`/`Glob`. It never reads your content or sends anything anywhere.
 - It is Claude-specific: hook schemas and tool names aren't portable across AI clients. Every other

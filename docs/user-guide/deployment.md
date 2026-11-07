@@ -1,12 +1,12 @@
 # Deployment
 
-The chart in `charts/rag-app` deploys the whole stack — the Java app, PostgreSQL
+The chart in `charts/sestacon` deploys the whole stack — the Java app, PostgreSQL
 with pgvector (StatefulSet + PVC), and Redis — from a single release.
 
 ## Install
 
 ```bash
-helm install rag ./charts/rag-app -n rag --create-namespace
+helm install rag ./charts/sestacon -n rag --create-namespace
 ```
 
 Check the release:
@@ -23,7 +23,7 @@ app boots; supply your own key via an existing Secret:
 
 ```bash
 kubectl -n rag create secret generic my-llm-key --from-literal=api-key=<YOUR_KEY>
-helm upgrade rag ./charts/rag-app -n rag \
+helm upgrade rag ./charts/sestacon -n rag \
   --set app.secrets.llmApiKey.existingSecret=my-llm-key
 ```
 
@@ -37,7 +37,7 @@ Every component image is a separate, fully overridable block
 rewrites the registry for all three at once — useful behind a private mirror.
 
 ```bash
-helm install rag ./charts/rag-app -n rag \
+helm install rag ./charts/sestacon -n rag \
   --set global.registry.url=my.registry/mirror \
   --set app.image.repository=myteam --set app.image.tag=0.1.0 \
   --set postgres.image.tag=pg17
@@ -62,7 +62,7 @@ If the app image is only loaded locally (e.g. into kind), set
 
 | Value | Default | Purpose |
 | --- | --- | --- |
-| `app.image.{registry,repository,name,tag,pullPolicy}` | `docker.io/your-org/rag-app` | App image (tag defaults to chart appVersion) |
+| `app.image.{registry,repository,name,tag,pullPolicy}` | `docker.io/your-org/Sestacon` | App image (tag defaults to chart appVersion) |
 | `app.service.{type,port}` | `ClusterIP`, `8080` | Service |
 | `app.config.llm.baseUrl` / `.model` | Groq defaults | LLM endpoint + model |
 | `app.config.embedding.dimensions` | `384` | Vector dimension |
@@ -123,9 +123,9 @@ If the app image is only loaded locally (e.g. into kind), set
 ## Rendering / validating manifests
 
 ```bash
-helm lint charts/rag-app
-helm template rag charts/rag-app | less        # inspect rendered YAML
-helm template rag charts/rag-app --set redis.enabled=false   # try overrides
+helm lint charts/sestacon
+helm template rag charts/sestacon | less        # inspect rendered YAML
+helm template rag charts/sestacon --set redis.enabled=false   # try overrides
 ```
 
 ## kind (local cluster)

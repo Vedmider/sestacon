@@ -14,14 +14,14 @@ chunks to the wrong caller.
 - In [hybrid search](hybrid-search-rrf.md) this is applied **before** ranking
   (`allowed_roles && caller_roles` in SQL).
 
-**Security caveat (from the `rag-app` review):** roles must come from an **authenticated**
+**Security caveat (from the `Sestacon` review):** roles must come from an **authenticated**
 identity. A raw client header (`X-Roles`) with no auth = bypass. Fine for localhost-only;
 needs real auth before any shared exposure.
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): `aclTags` + roles in both stores.
+- [`Sestacon`](../apps/sestacon.md): `aclTags` + roles in both stores.
 - [`code-memory`](../apps/code-memory.md): mostly drops out (single-repo code index).
 
 ## Related
-[Hybrid search + RRF](hybrid-search-rrf.md) · [`rag-app`](../apps/rag-app.md) ·
+[Hybrid search + RRF](hybrid-search-rrf.md) · [`Sestacon`](../apps/sestacon.md) ·
 [Guardrails](guardrails.md)

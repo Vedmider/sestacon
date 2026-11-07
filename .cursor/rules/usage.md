@@ -1,10 +1,10 @@
 ---
-description: rag-app usage policy — when to ask rag-app (concept/why/which, grounded in docs) vs native grep/code tools, and the ingest prerequisite
+description: Sestacon usage policy — when to ask Sestacon (concept/why/which, grounded in docs) vs native grep/code tools, and the ingest prerequisite
 alwaysApply: true
 ---
 
 This repo's AI onboarding and usage policy lives in one place: **[AGENTS.md](../../AGENTS.md)**.
 
 Read it first, then follow the policy in `docs/SKILL.md`: concept / "what / why / which" grounded in
-your docs → rag-app (`/api/retrieve`); "where is method X" / exact spans / live edits → context-mcp
+your docs → Sestacon (`/api/retrieve`); "where is method X" / exact spans / live edits → Dylext
 or code-memory. Ingest a repo's explanatory content before reasoning about it.

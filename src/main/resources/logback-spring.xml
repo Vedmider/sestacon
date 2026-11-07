@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <springProperty name="appName" source="spring.application.name" defaultValue="rag-app"/>
+    <springProperty name="appName" source="spring.application.name" defaultValue="sestacon"/>
 
     <!-- Dev: human-readable, includes request correlation (MDC) and security marker. -->
     <springProfile name="dev">

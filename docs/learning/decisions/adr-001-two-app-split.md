@@ -1,4 +1,4 @@
-# ADR-001 — Split into two apps (`rag-app` + `code-memory`)
+# ADR-001 — Split into two apps (`Sestacon` + `code-memory`)
 
 **Status:** accepted
 
@@ -7,7 +7,7 @@ Refactoring needs two kinds of context: stable knowledge (conventions, architect
 live code. They differ in volatility, optimal retrieval model, and flow.
 
 ## Decision
-Run **two apps**: [`rag-app`](../apps/rag-app.md) (static, text chunks, Redis hot tier) and
+Run **two apps**: [`Sestacon`](../apps/sestacon.md) (static, text chunks, Redis hot tier) and
 [`code-memory`](../apps/code-memory.md) (dynamic, [locators](../concepts/locator-search.md),
 git-sync).
 

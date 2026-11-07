@@ -98,7 +98,7 @@ libraries so embeddings run **offline** — no downloads at container start.
 
 ```bash
 bash scripts/prefetch-djl-cache.sh    # stages docker/djl-cache (~434MB) once
-DOCKER_BUILDKIT=1 docker build -t rag-app:0.1.0 .
+DOCKER_BUILDKIT=1 docker build -t Sestacon:0.1.0 .
 ```
 
 The build uses Docker Hub and Maven Central by default. Nothing is tied to a specific
@@ -107,7 +107,7 @@ registry or source — override any of it:
 ```bash
 DOCKER_BUILDKIT=1 docker build \
   --build-arg REGISTRY=my-mirror.example.com/library \
-  -t rag-app:0.1.0 .
+  -t Sestacon:0.1.0 .
 # or override whole image refs:
 #   --build-arg BUILD_IMAGE=my/maven:3.9-jdk21 --build-arg RUNTIME_IMAGE=my/jre:21
 # and, behind a private Maven mirror, pass your settings.xml as a secret (optional):

@@ -18,12 +18,12 @@ so most updates can be cheap or skipped.
 - Delete symbols no longer present; upsert changed ones.
 
 This "structural-change detector" is the trigger that refreshes the static semantic layer
-in [`rag-app`](../apps/rag-app.md) and the symbol index in [`code-memory`](../apps/code-memory.md).
+in [`Sestacon`](../apps/sestacon.md) and the symbol index in [`code-memory`](../apps/code-memory.md).
 
 ## In our apps
 - [`code-memory`](../apps/code-memory.md): git-hash incremental sync + delete-by-path (new
-  vs `rag-app`'s append-only ingest).
-- [`rag-app`](../apps/rag-app.md): re-ingest the static layer on structural change only.
+  vs `Sestacon`'s append-only ingest).
+- [`Sestacon`](../apps/sestacon.md): re-ingest the static layer on structural change only.
 
 ## Related
 [Locator search](locator-search.md) · [Redis caching](redis-caching.md) ·

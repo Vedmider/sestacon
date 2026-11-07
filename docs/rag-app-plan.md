@@ -22,7 +22,7 @@ Build a production-ready RAG application from scratch on Java/Spring AI with vec
 
 ## Helm Chart Design (flexible, fully overridable values)
 
-Single chart `charts/rag-app` deploying three components (Java app, PostgreSQL+pgvector, Redis), each independently toggleable and fully overridable. Image coordinates are split (`registry` / `repository` / `name` / `tag` / `pullPolicy`) in a per-image map, so e.g. `postgres.image.name` or `postgres.image.tag` can be overridden on their own. A `global` block overrides registry/pullSecret/storageClass across all components. The chart composes the full image path via an `imagePath` helper in `_helpers.tpl` (registry/repository/name:tag, with `global.registry.url` override).
+Single chart `charts/sestacon` deploying three components (Java app, PostgreSQL+pgvector, Redis), each independently toggleable and fully overridable. Image coordinates are split (`registry` / `repository` / `name` / `tag` / `pullPolicy`) in a per-image map, so e.g. `postgres.image.name` or `postgres.image.tag` can be overridden on their own. A `global` block overrides registry/pullSecret/storageClass across all components. The chart composes the full image path via an `imagePath` helper in `_helpers.tpl` (registry/repository/name:tag, with `global.registry.url` override).
 
 Target `values.yaml` layout:
 
@@ -42,7 +42,7 @@ app:
   image:
     registry: docker.io
     repository: your-org
-    name: rag-app
+    name: Sestacon
     tag: ""              # defaults to Chart.appVersion when empty
     pullPolicy: IfNotPresent
   service:
@@ -232,7 +232,7 @@ Build bottom-up: first a working Spring Boot skeleton and containerization, then
   Demo: `curl /actuator/prometheus` shows `llm_tokens_total`, `rag_latency`, `cache_hits`.
 
 - [ ] **Task 11: Helm scaffold + PostgreSQL + pgvector (StatefulSet + PVC).**
-  Create chart `charts/rag-app` following the reference's layout: `Chart.yaml`, `values.yaml` (per the Helm Chart Design above), `values.schema.json`, `_helpers.tpl` (named templates for `imagePath` registry/repository/name:tag composition with `global.registry.url` override, standard/selector labels, product annotations), `.helmignore`. DB templates: StatefulSet using `postgres.image.*`, PVC (`postgres.persistence.*` honoring `global.storageClass`), headless Service, Secret for the password (or `postgres.auth.existingSecret`), gated on `postgres.enabled`. Test: `helm lint` + `helm template` render; overriding `postgres.image.name`/`tag` changes the rendered image; (optional) deploy to kind and DB pod readiness.
+  Create chart `charts/sestacon` following the reference's layout: `Chart.yaml`, `values.yaml` (per the Helm Chart Design above), `values.schema.json`, `_helpers.tpl` (named templates for `imagePath` registry/repository/name:tag composition with `global.registry.url` override, standard/selector labels, product annotations), `.helmignore`. DB templates: StatefulSet using `postgres.image.*`, PVC (`postgres.persistence.*` honoring `global.storageClass`), headless Service, Secret for the password (or `postgres.auth.existingSecret`), gated on `postgres.enabled`. Test: `helm lint` + `helm template` render; overriding `postgres.image.name`/`tag` changes the rendered image; (optional) deploy to kind and DB pod readiness.
   Demo: `helm install` brings up the DB with a persistent volume; `--set postgres.image.tag=pg17` flips the image.
 
 - [ ] **Task 12: Helm — Redis.**
@@ -244,7 +244,7 @@ Build bottom-up: first a working Spring Boot skeleton and containerization, then
   Demo: the app is reachable via the Ingress host; image/registry fully overridable via `app.image.*` or `global.registry.url`.
 
 - [ ] **Task 14: Final wiring + E2E.**
-  Finalize `values.yaml` + `values.schema.json` for all components, dependency ordering (initContainer or readiness-wait on DB/Redis), a README documenting every override knob (`global.*`, `<component>.image.*`, persistence, ingress, how to create the API-key Secret and reference it via `app.secrets.llmApiKey.existingSecret`), and the optional Prometheus `ServiceMonitor`. E2E test in kind: `helm install rag ./charts/rag-app` → ingest a document → `/api/chat` returns a grounded answer via Ingress; metrics available. Ensure no orphaned code — all endpoints/features are wired into the deployment.
+  Finalize `values.yaml` + `values.schema.json` for all components, dependency ordering (initContainer or readiness-wait on DB/Redis), a README documenting every override knob (`global.*`, `<component>.image.*`, persistence, ingress, how to create the API-key Secret and reference it via `app.secrets.llmApiKey.existingSecret`), and the optional Prometheus `ServiceMonitor`. E2E test in kind: `helm install rag ./charts/sestacon` → ingest a document → `/api/chat` returns a grounded answer via Ingress; metrics available. Ensure no orphaned code — all endpoints/features are wired into the deployment.
   Demo: a single `helm install` brings up the whole stack; the full ingest→chat scenario works via Ingress, metrics in Prometheus.
 
 ## Security Notes

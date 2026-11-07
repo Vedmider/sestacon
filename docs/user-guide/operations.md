@@ -51,7 +51,7 @@ and alerted on independently:
 > **No sensitive data is logged.** Question text, PII values, and the API key never
 > appear in logs — only outcomes, counts, client IP, and correlation ids.
 
-**Levels** are set in `application.yml` (`logging.level.root`, `com.example.rag`,
+**Levels** are set in `application.yml` (`logging.level.root`, `io.github.vedmider.sestacon`,
 `SECURITY`) and overridable per environment, e.g.
 `--set-string env` or `LOGGING_LEVEL_COM_EXAMPLE_RAG=DEBUG`.
 
@@ -59,7 +59,7 @@ Example (prod JSON):
 ```json
 {"@timestamp":"…","message":"event=prompt_injection_blocked outcome=denied",
  "logger_name":"SECURITY","level":"WARN","path":"/api/chat","method":"POST",
- "requestId":"47f7…","clientIp":"10.0.0.5","tags":["SECURITY"],"app":"rag-app"}
+ "requestId":"47f7…","clientIp":"10.0.0.5","tags":["SECURITY"],"app":"Sestacon"}
 ```
 
 ## Health probes
@@ -120,5 +120,5 @@ limit at the ingress/gateway or move the bucket to Redis.
 Structured logs go to stdout (JSON in `prod`) for collection by your platform's log
 pipeline. See **Logging & security audit** above for formats, correlation, and the
 security event catalogue. In Kubernetes:
-`kubectl -n <ns> logs deploy/<release>-rag-app`. Filter security events on the
+`kubectl -n <ns> logs deploy/<release>-Sestacon`. Filter security events on the
 `SECURITY` logger / `tags:["SECURITY"]`.

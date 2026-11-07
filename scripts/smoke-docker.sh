@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bounded container smoke test: start detached, poll /actuator/health, tear down.
 set -u
-IMAGE="${1:-rag-app:0.1.0}"
+IMAGE="${1:-sestacon:0.1.0}"
 NAME=rag-smoke
 PORT=18080
 

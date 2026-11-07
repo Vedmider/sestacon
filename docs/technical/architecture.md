@@ -4,7 +4,7 @@
 
 ```
                         ┌──────────────── Kubernetes namespace ────────────────┐
-   client ── Ingress ──▶│  rag-app (Spring Boot)                                │
+   client ── Ingress ──▶│  Sestacon (Spring Boot)                                │
                         │   ├─ IngestController   /api/ingest (file upload)    │
                         │   ├─ DocumentController /api/documents (JSON chunks)  │
                         │   ├─ ChatController     /api/chat                     │

@@ -28,7 +28,7 @@ COPY docker/djl-cache /opt/djl-cache
 ENV PYTORCH_PRECXX11=true \
     DJL_CACHE_DIR=/opt/djl-cache \
     JAVA_TOOL_OPTIONS=-Dai.djl.offline=true
-COPY --from=build /build/target/rag-app-*.jar /app/app.jar
+COPY --from=build /build/target/sestacon-*.jar /app/app.jar
 USER 10001
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

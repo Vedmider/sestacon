@@ -16,11 +16,11 @@ Token savings come from retrieve-only:
 
 ## How it works
 Same pipeline up to search, then **stop before the LLM** and project results:
-- text projection → static docs ([`rag-app`](../apps/rag-app.md));
+- text projection → static docs ([`Sestacon`](../apps/sestacon.md));
 - locator projection → code ([`code-memory`](../apps/code-memory.md)).
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): keeps `/chat` for doc-Q&A; adds `/retrieve` for kiro.
+- [`Sestacon`](../apps/sestacon.md): keeps `/chat` for doc-Q&A; adds `/retrieve` for kiro.
 - [`code-memory`](../apps/code-memory.md): retrieve-only by design.
 
 ## Related

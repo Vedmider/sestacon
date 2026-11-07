@@ -20,7 +20,7 @@ structure) and goes **stale** if the source changes but the vector isn't re-embe
 is why [`code-memory`](../apps/code-memory.md) leans to [structural ranking](structural-ranking.md).
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): dense embeddings (local ONNX MiniLM or OpenAI-compatible).
+- [`Sestacon`](../apps/sestacon.md): dense embeddings (local ONNX MiniLM or OpenAI-compatible).
 - [`code-memory`](../apps/code-memory.md): dense is **optional**; structural preferred.
 
 ## Related

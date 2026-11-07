@@ -1,13 +1,13 @@
 # AGENTS.md — start here (any AI)
 
-This is the single entry point for an AI agent working with **rag-app**. It is AI-agnostic: Claude,
+This is the single entry point for an AI agent working with **Sestacon**. It is AI-agnostic: Claude,
 Cursor, Kiro, Codex, Aider, or anything that can read a repo and make an HTTP call. Read this file,
 wire yourself in, and follow the usage policy it points at. Everything below links to a single
 source of truth — nothing here is a second copy of the policy.
 
 ## What this app is (30 seconds)
 
-rag-app is the **document & knowledge layer**: upload prose (product docs, runbooks, design notes,
+Sestacon is the **document & knowledge layer**: upload prose (product docs, runbooks, design notes,
 skills, conventions) and ask natural-language questions answered **grounded in those documents**,
 with source attribution. It is the "what / why / which" brain — **not** a code index. It embeds text
 locally (MiniLM, in-cluster) and retrieves the most relevant chunks; an optional chat path adds an
@@ -24,7 +24,7 @@ bash scripts/dev-local.sh up       # downloads the model if missing, builds, sta
 
 ### 2. Call the API
 
-rag-app is a plain **HTTP/REST** service (not MCP) on `http://localhost:18080`. Any AI that can make
+Sestacon is a plain **HTTP/REST** service (not MCP) on `http://localhost:18080`. Any AI that can make
 an HTTP request can use it — via your own helper (e.g. a local `apicall.py`), the client's HTTP
 tool, or `curl`. The three endpoints:
 
@@ -35,7 +35,7 @@ tool, or `curl`. The three endpoints:
 
 ### 3. PREREQUISITE — ingest the repo's explanatory content first
 
-**Before reasoning about any repo, its explanatory content must be in rag-app** (purpose,
+**Before reasoning about any repo, its explanatory content must be in Sestacon** (purpose,
 architecture, which part maps to which functionality) — the same orientation a human does before
 editing. If it's absent, ingest it first under a stable id like `explain:<repo>:<path>`. Full rule:
 [`docs/SKILL.md`](docs/SKILL.md) → "PREREQUISITE".
@@ -54,15 +54,15 @@ curl -XPOST http://localhost:18080/api/retrieve -H 'Content-Type: application/js
 
 ## The usage policy (READ THIS — it's the whole point)
 
-The soft policy — when to use rag-app vs code tools, how to retrieve well, the ingest prerequisite —
+The soft policy — when to use Sestacon vs code tools, how to retrieve well, the ingest prerequisite —
 is authored once in:
 
-- **[`docs/SKILL.md`](docs/SKILL.md)** — what rag-app is, when to USE / when NOT to, how to use well
+- **[`docs/SKILL.md`](docs/SKILL.md)** — what Sestacon is, when to USE / when NOT to, how to use well
   (prefer `/api/retrieve`, pass `X-Roles` honestly, cite `source`), and the ingest prerequisite.
   **This is the policy. Load it and follow it.**
 
-One-line version: **concept / "what / why / which" grounded in your docs → rag-app.** For "where is
-method X", exact code spans, or uncommitted edits, that's **context-mcp** / code-memory — not this.
+One-line version: **concept / "what / why / which" grounded in your docs → Sestacon.** For "where is
+method X", exact code spans, or uncommitted edits, that's **Dylext** / code-memory — not this.
 
 ## Two ways to adopt the policy
 
@@ -73,6 +73,6 @@ You choose how strongly to bind the AI to it:
   `.kiro/steering/usage.md`) and all point back here. No setup; the AI *should* follow it. An
   autonomous agent can still ignore it under pressure.
 - **Hard (opt-in, Claude Code)** — if you observe the AI answering conceptual/"why" questions from
-  raw `grep` instead of asking rag-app, install a `PreToolUse` speed-bump that makes it **confirm**
+  raw `grep` instead of asking Sestacon, install a `PreToolUse` speed-bump that makes it **confirm**
   first (it asks, it does not hard-block). See **[`hooks/claude/install.md`](hooks/claude/install.md)**.
   Claude-specific by nature (hook schemas aren't portable); the soft layer covers every other client.

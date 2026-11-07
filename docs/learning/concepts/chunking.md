@@ -26,11 +26,11 @@ Rule of thumb: chunk at the unit a user would want returned — one rule/skill p
 conventions; one symbol per chunk for code.
 
 ## In our apps
-- [`rag-app`](../apps/rag-app.md): prose chunking of docs/skills/conventions.
+- [`Sestacon`](../apps/sestacon.md): prose chunking of docs/skills/conventions.
 - [`code-memory`](../apps/code-memory.md): **symbol-aware** chunking (one function/class),
   storing [locators](locator-search.md) not bodies.
 
 ## Related
 [Tika document parser](tika-document-parser.md) · [Embeddings](embeddings.md) ·
 [Locator search](locator-search.md) · [Structural ranking](structural-ranking.md) ·
-[`rag-app`](../apps/rag-app.md)
+[`Sestacon`](../apps/sestacon.md)
