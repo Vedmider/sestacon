@@ -37,7 +37,7 @@ public class DocumentIngestionService implements DocumentIngestionUseCase {
         if (contextual) {
             chunks = ContextualChunker.contextualize(chunks);
         }
-        documentStore.add(chunks);
+        documentStore.replace(chunks, aclTags == null ? List.of() : aclTags);
         return chunks.size();
     }
 }

@@ -14,7 +14,10 @@ Endpoints:
 - `POST /api/retrieve` `{query, topK}` (header `X-Roles`) → `[{text, source, score}]` — grounded
   chunks, no LLM (token-cheap; the agent reasons itself).
 - `POST /api/chat` → a generated answer grounded in retrieved docs, with sources.
-- `POST /api/ingest` (file) / `POST /api/documents` (pre-chunked) → add documents.
+- `POST /api/ingest` (file) / `POST /api/documents` (pre-chunked) → add documents. Re-posting an
+  existing `documentId` **replaces** all its chunks (supersession — no duplicates).
+- `DELETE /api/documents/{documentId}` → remove a document and all its chunks. All-or-nothing RBAC:
+  your `X-Roles` must cover every chunk, else 403 and nothing is deleted; unknown id → `deleted: 0`.
 
 ## When to USE it
 
@@ -71,6 +74,15 @@ Two ways to satisfy the prerequisite:
 Then retrieval works as a lookup by stable id (findable + replaceable, like a database record):
 - `explain:<repo>:*` → why/architecture/part map (orientation before editing).
 - Re-ingest (same `documentId`) whenever the repo's structure changes materially.
+
+### Keeping the corpus current (supersession)
+A `documentId` is the lifecycle key. Because re-ingesting an id **replaces** its chunks, the right
+way to update a document (a law, a spec, a runbook that changed) is to re-post it under the **same
+`documentId`** — the old version is overwritten atomically, so retrieval only ever sees the current
+one. To retire a document entirely, `DELETE /api/documents/{documentId}`. Do **not** encode the
+version in the id (`law:x:v2`) — that strands the old version in the store; keep the id stable and
+let replace supersede. There is no version history (by design); if you need an audit trail, keep it
+outside Sestacon.
 
 Skip this and the AI will navigate code blind to intent — exactly the orientation step a human never
 skips. The code-location tools (code-memory, Dylext) tell you *where*; this tells you *why*.

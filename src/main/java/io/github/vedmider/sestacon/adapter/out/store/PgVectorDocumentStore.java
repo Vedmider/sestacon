@@ -38,6 +38,30 @@ public class PgVectorDocumentStore implements DocumentStore {
         }
     }
 
+    @Override
+    public int deleteByDocumentId(String documentId, List<String> roles) {
+        var filter = new org.springframework.ai.vectorstore.filter.FilterExpressionBuilder()
+                .eq("documentId", documentId).build();
+        List<Document> existing = vectorStore.similaritySearch(
+                SearchRequest.builder().query(documentId).topK(10_000)
+                        .filterExpression(filter).build());
+        if (existing.isEmpty()) {
+            return 0;
+        }
+        if (existing.stream().anyMatch(d -> !visibleTo(d, roles))) {
+            throw new DeleteNotPermittedException(documentId);
+        }
+        vectorStore.delete(filter);
+        return existing.size();
+    }
+
+    @Override
+    public void replace(List<DocumentChunk> chunks, List<String> roles) {
+        chunks.stream().map(DocumentChunk::documentId).distinct()
+                .forEach(id -> deleteByDocumentId(id, roles));
+        add(chunks);
+    }
+
     private static Document toDocument(DocumentChunk c) {
         Map<String, Object> metadata = new HashMap<>(c.metadata());
         metadata.put("source", c.documentId());

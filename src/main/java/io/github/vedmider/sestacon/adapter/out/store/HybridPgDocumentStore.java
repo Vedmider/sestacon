@@ -57,6 +57,27 @@ public class HybridPgDocumentStore implements DocumentStore {
     }
 
     @Override
+    public int deleteByDocumentId(String documentId, List<String> roles) {
+        String callerRoles = toPgArray(withPublic(roles));
+        Integer hidden = jdbc.queryForObject("""
+                SELECT count(*) FROM rag_chunks
+                WHERE document_id = ? AND NOT (allowed_roles && ?::text[])""",
+                Integer.class, documentId, callerRoles);
+        if (hidden != null && hidden > 0) {
+            throw new DeleteNotPermittedException(documentId);
+        }
+        return jdbc.update("DELETE FROM rag_chunks WHERE document_id = ?", documentId);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void replace(List<DocumentChunk> chunks, List<String> roles) {
+        chunks.stream().map(DocumentChunk::documentId).distinct()
+                .forEach(id -> deleteByDocumentId(id, roles));
+        add(chunks);
+    }
+
+    @Override
     public List<RetrievedChunk> search(String query, int topK) {
         return search(query, topK, List.of());
     }

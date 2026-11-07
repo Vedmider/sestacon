@@ -51,4 +51,13 @@ public final class SecurityAudit {
     public static void chunksIngested(String documentId) {
         log.info(SECURITY, "event=chunks_ingested document=\"{}\" outcome=stored", documentId);
     }
+
+    public static void documentDeleted(String documentId, int chunks) {
+        log.warn(SECURITY, "event=document_deleted document=\"{}\" chunks={} outcome=removed",
+                documentId, chunks);
+    }
+
+    public static void deleteRefused(String documentId) {
+        log.warn(SECURITY, "event=document_delete_refused document=\"{}\" outcome=denied", documentId);
+    }
 }

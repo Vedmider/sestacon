@@ -1,7 +1,9 @@
 package io.github.vedmider.sestacon.adapter.in.web;
 
 import io.github.vedmider.sestacon.domain.model.DocumentChunk;
+import io.github.vedmider.sestacon.domain.port.in.DeleteDocumentUseCase;
 import io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase;
+import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +36,9 @@ class DocumentControllerWebTest {
 
     @MockBean
     private IngestChunksUseCase ingestion;
+
+    @MockBean
+    private DeleteDocumentUseCase deletion;
 
     @Test
     void storesChunksFromStandardContract() throws Exception {
@@ -68,5 +76,44 @@ class DocumentControllerWebTest {
         mockMvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"documentId\":\"d\",\"content\":\"  \"}]"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteReturnsRemovedCount() throws Exception {
+        when(deletion.delete(eq("law:gdpr"), eq(List.of()))).thenReturn(4);
+
+        mockMvc.perform(delete("/api/documents/{id}", "law:gdpr"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.documentId").value("law:gdpr"))
+                .andExpect(jsonPath("$.deleted").value(4));
+    }
+
+    @Test
+    void deleteOfUnknownDocumentIsIdempotentZero() throws Exception {
+        when(deletion.delete(eq("missing"), eq(List.of()))).thenReturn(0);
+
+        mockMvc.perform(delete("/api/documents/{id}", "missing"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deleted").value(0));
+    }
+
+    @Test
+    void deletePassesXRolesThrough() throws Exception {
+        when(deletion.delete(eq("law:gdpr"), eq(List.of("legal")))).thenReturn(2);
+
+        mockMvc.perform(delete("/api/documents/{id}", "law:gdpr").header("X-Roles", "legal"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deleted").value(2));
+
+        verify(deletion).delete("law:gdpr", List.of("legal"));
+    }
+
+    @Test
+    void deleteRefusedByRbacReturns403() throws Exception {
+        when(deletion.delete(eq("eng-only"), eq(List.of())))
+                .thenThrow(new DocumentStore.DeleteNotPermittedException("eng-only"));
+
+        mockMvc.perform(delete("/api/documents/{id}", "eng-only"))
+                .andExpect(status().isForbidden());
     }
 }

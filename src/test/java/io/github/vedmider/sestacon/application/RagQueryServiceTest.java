@@ -41,6 +41,9 @@ class RagQueryServiceTest {
         List<RetrievedChunk> toReturn = List.of();
         public void add(List<io.github.vedmider.sestacon.domain.model.DocumentChunk> chunks) { }
         public List<RetrievedChunk> search(String query, int topK) { return toReturn; }
+        public int deleteByDocumentId(String documentId, java.util.List<String> roles) { return 0; }
+        public void replace(List<io.github.vedmider.sestacon.domain.model.DocumentChunk> chunks,
+                            java.util.List<String> roles) { }
     }
 
     static class FakeCache implements AnswerCache {

@@ -25,7 +25,9 @@ public class ChunkIngestionService implements IngestChunksUseCase {
     @Override
     public int ingest(List<DocumentChunk> chunks) {
         List<DocumentChunk> toStore = contextual ? ContextualChunker.contextualize(chunks) : chunks;
-        documentStore.add(toStore);
+        List<String> aclTags = toStore.stream()
+                .flatMap(c -> c.aclTags().stream()).distinct().toList();
+        documentStore.replace(toStore, aclTags);
         return toStore.size();
     }
 }

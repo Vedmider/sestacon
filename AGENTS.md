@@ -31,7 +31,9 @@ tool, or `curl`. The three endpoints:
 - `POST /api/retrieve` `{query, topK}` + header `X-Roles` → `[{text, source, score}]` — grounded
   chunks, no LLM (token-cheap; you reason over them yourself). **Prefer this as an agent.**
 - `POST /api/chat` `{question}` → a generated answer grounded in retrieved docs, with sources.
-- `POST /api/ingest` (file) / `POST /api/documents` (pre-chunked) → add documents.
+- `POST /api/ingest` (file) / `POST /api/documents` (pre-chunked) → add documents. Re-posting an
+  existing `documentId` **replaces** its chunks; `DELETE /api/documents/{documentId}` removes it
+  (all-or-nothing RBAC via `X-Roles`).
 
 ### 3. PREREQUISITE — ingest the repo's explanatory content first
 

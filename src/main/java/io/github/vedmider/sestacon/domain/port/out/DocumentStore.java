@@ -20,4 +20,29 @@ public interface DocumentStore {
     default List<RetrievedChunk> search(String query, int topK, List<String> roles) {
         return search(query, topK);
     }
+
+    /**
+     * Deletes every chunk of {@code documentId}, enforcing <b>all-or-nothing</b> RBAC: the delete
+     * proceeds only if {@code roles} (plus {@code "public"}) cover <i>all</i> chunks of the document.
+     * If any chunk is not visible to the caller, nothing is deleted and
+     * {@link DeleteNotPermittedException} is thrown. Deleting a non-existent id is a no-op (0).
+     *
+     * @return number of chunks removed (0 if the id did not exist)
+     */
+    int deleteByDocumentId(String documentId, List<String> roles);
+
+    /**
+     * Atomically replaces each document in {@code chunks}: for every distinct {@code documentId}
+     * present, its existing chunks are deleted (all-or-nothing RBAC) and the new chunks inserted,
+     * in a single transaction. This is the supersession primitive — re-ingesting a document id
+     * overwrites it rather than appending duplicates.
+     */
+    void replace(List<DocumentChunk> chunks, List<String> roles);
+
+    /** Thrown when a caller's roles do not cover every chunk of a document they tried to delete. */
+    class DeleteNotPermittedException extends RuntimeException {
+        public DeleteNotPermittedException(String documentId) {
+            super("insufficient roles to delete all chunks of document: " + documentId);
+        }
+    }
 }

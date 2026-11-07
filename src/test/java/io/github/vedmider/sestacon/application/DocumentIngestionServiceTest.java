@@ -23,6 +23,8 @@ class DocumentIngestionServiceTest {
         DocumentStore store = new DocumentStore() {
             public void add(List<DocumentChunk> chunks) { stored.addAll(chunks); }
             public List<io.github.vedmider.sestacon.domain.model.RetrievedChunk> search(String q, int k) { return List.of(); }
+            public int deleteByDocumentId(String id, List<String> roles) { return 0; }
+            public void replace(List<DocumentChunk> chunks, List<String> roles) { stored.addAll(chunks); }
         };
 
         int count = new DocumentIngestionService(parser, store, false).ingest("doc.txt", "x".getBytes());
@@ -39,6 +41,8 @@ class DocumentIngestionServiceTest {
         DocumentStore store = new DocumentStore() {
             public void add(List<DocumentChunk> chunks) { stored.addAll(chunks); }
             public List<io.github.vedmider.sestacon.domain.model.RetrievedChunk> search(String q, int k) { return List.of(); }
+            public int deleteByDocumentId(String id, List<String> roles) { return 0; }
+            public void replace(List<DocumentChunk> chunks, List<String> roles) { stored.addAll(chunks); }
         };
 
         new DocumentIngestionService(parser, store, false)
@@ -56,6 +60,8 @@ class DocumentIngestionServiceTest {
         DocumentStore store = new DocumentStore() {
             public void add(List<DocumentChunk> chunks) { stored.addAll(chunks); }
             public List<io.github.vedmider.sestacon.domain.model.RetrievedChunk> search(String q, int k) { return List.of(); }
+            public int deleteByDocumentId(String id, List<String> roles) { return 0; }
+            public void replace(List<DocumentChunk> chunks, List<String> roles) { stored.addAll(chunks); }
         };
 
         new DocumentIngestionService(parser, store, true).ingest("guide.md", "x".getBytes());

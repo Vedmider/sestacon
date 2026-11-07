@@ -102,4 +102,52 @@ class HybridPgDocumentStoreIT {
 
         assertThat(sources).contains("eng-doc");
     }
+
+    @Test
+    void replaceOverwritesAllChunksOfADocumentInsteadOfAppending() {
+        store.replace(List.of(
+                new DocumentChunk("public-doc", "v2", "revised revenue figures for zorblax",
+                        java.util.Map.of(), List.of(DocumentChunk.PUBLIC))), List.of());
+
+        Integer rows = jdbc.queryForObject(
+                "SELECT count(*) FROM rag_chunks WHERE document_id = 'public-doc'", Integer.class);
+        assertThat(rows).isEqualTo(1);
+        assertThat(store.search("zorblax", 10, List.of()).stream().map(RetrievedChunk::source))
+                .contains("public-doc");
+    }
+
+    @Test
+    void deleteByDocumentIdRemovesOnlyThatDocument() {
+        int removed = store.deleteByDocumentId("public-doc", List.of());
+
+        assertThat(removed).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM rag_chunks", Integer.class)).isEqualTo(1);
+        assertThat(store.search("zorblax", 10, List.of("engineering")).stream()
+                .map(RetrievedChunk::source)).containsExactly("eng-doc");
+    }
+
+    @Test
+    void deleteOfUnknownDocumentIsANoOp() {
+        assertThat(store.deleteByDocumentId("does-not-exist", List.of())).isZero();
+    }
+
+    @Test
+    void deleteIsAllOrNothingWhenCallerCannotSeeEveryChunk() {
+        assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM rag_chunks WHERE document_id = 'eng-doc'", Integer.class))
+                .isEqualTo(1);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> store.deleteByDocumentId("eng-doc", List.of()))
+                .isInstanceOf(DocumentStore.DeleteNotPermittedException.class);
+
+        assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM rag_chunks WHERE document_id = 'eng-doc'", Integer.class))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void callerWithTheRoleMayDeleteARestrictedDocument() {
+        assertThat(store.deleteByDocumentId("eng-doc", List.of("engineering"))).isEqualTo(1);
+    }
 }
