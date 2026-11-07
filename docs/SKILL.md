@@ -47,3 +47,30 @@ Endpoints:
 
 concept/docs → **rag-app** · fuzzy "where is the code" → **code-memory** · exact code + live edits →
 **context-mcp**. In the unified setup, context-mcp's `explain` tool delegates here.
+
+
+---
+
+## ⚠️ PREREQUISITE — ingest the repo's explanatory content BEFORE working
+
+> **Before reasoning about a repo, its explanatory content MUST be in rag-app.** This is how the
+> AI "realizes why the repo exists, its structure, and which part maps to which functionality" —
+> the same orientation a human does before editing. If that content is absent, **ingest it first.**
+
+Two ways to satisfy the prerequisite:
+
+1. **Static (preferred).** The repo ships explanatory docs (purpose, architecture, part→function map)
+   under e.g. `docs/` or `docs/EXPLAIN/`. Ingest those once:
+   `POST /api/documents` (or `/api/ingest`) with a stable `documentId` per file, e.g.
+   `explain:<repo>:<path>`. Treat this as a **repo requirement** — a repo should carry its own
+   explanation.
+2. **Analyze-once fallback.** If the repo has none, the AI analyzes it once (structure + purpose +
+   how parts interact), writes that explanation, and ingests it under `explain:<repo>:...`. That
+   ingested result becomes the repo's static explanatory content going forward.
+
+Then retrieval works as a lookup by stable id (findable + replaceable, like a database record):
+- `explain:<repo>:*` → why/architecture/part map (orientation before editing).
+- Re-ingest (same `documentId`) whenever the repo's structure changes materially.
+
+Skip this and the AI will navigate code blind to intent — exactly the orientation step a human never
+skips. The code-location tools (code-memory, context-mcp) tell you *where*; this tells you *why*.
