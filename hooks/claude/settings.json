@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/claude/ask-use-rag-app.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
