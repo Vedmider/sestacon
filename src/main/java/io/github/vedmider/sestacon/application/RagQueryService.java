@@ -6,9 +6,9 @@ import io.github.vedmider.sestacon.domain.model.CachedAnswer;
 import io.github.vedmider.sestacon.domain.model.Completion;
 import io.github.vedmider.sestacon.domain.model.RetrievedChunk;
 import io.github.vedmider.sestacon.domain.port.in.RagQueryUseCase;
+import io.github.vedmider.sestacon.domain.port.in.RetrieveUseCase;
 import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.ChatProvider;
-import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.EmbeddingProvider;
 import io.github.vedmider.sestacon.guardrail.GuardrailException;
 import io.github.vedmider.sestacon.guardrail.GuardrailProperties;
@@ -42,7 +42,7 @@ public class RagQueryService implements RagQueryUseCase {
 
     private final ChatProvider chatProvider;
     private final EmbeddingProvider embeddingProvider;
-    private final DocumentStore documentStore;
+    private final RetrieveUseCase retrieve;
     private final AnswerCache answerCache;
     private final RagProperties properties;
     private final GuardrailProperties guardrails;
@@ -52,13 +52,13 @@ public class RagQueryService implements RagQueryUseCase {
     private final RagMetrics metrics;
 
     public RagQueryService(ChatProvider chatProvider, EmbeddingProvider embeddingProvider,
-                           DocumentStore documentStore, AnswerCache answerCache,
+                           RetrieveUseCase retrieve, AnswerCache answerCache,
                            RagProperties properties, GuardrailProperties guardrails,
                            PiiRedactor piiRedactor, PromptInjectionDetector injectionDetector,
                            OutputGuard outputGuard, RagMetrics metrics) {
         this.chatProvider = chatProvider;
         this.embeddingProvider = embeddingProvider;
-        this.documentStore = documentStore;
+        this.retrieve = retrieve;
         this.answerCache = answerCache;
         this.properties = properties;
         this.guardrails = guardrails;
@@ -107,7 +107,7 @@ public class RagQueryService implements RagQueryUseCase {
         }
         metrics.recordCacheMiss();
 
-        List<RetrievedChunk> chunks = documentStore.search(question, properties.getTopK(), roles);
+        List<RetrievedChunk> chunks = retrieve.retrieve(question, properties.getTopK(), roles);
         if (guard && guardrails.isBlockPromptInjection()) {
             chunks = chunks.stream().filter(c -> {
                 if (injectionDetector.isInjection(c.text())) {
