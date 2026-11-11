@@ -70,6 +70,17 @@ curl -XPOST http://localhost:18080/api/retrieve -H 'Content-Type: application/js
      -d '{"query":"rate limiting","metadata":{"sourceSystem":"jira","docType":"md"}}'
 ```
 
+## Retrieval quality & performance
+
+Black-box e2e against a real 128-doc / 1.3 MB product-doc corpus (hybrid mode, local MiniLM-384).
+
+**Quality** (12 labelled questions, k=10): Recall@10 **1.00** · MRR **0.85** · Hit@1 **75%** · Hit@3 **92%**.
+The right doc is always retrieved and usually ranked first; the 3 non-rank-1 cases are near-identical
+sibling specs (where section-chunking + a reranker would help more than a bigger embedder).
+
+**Performance** (retrieve, no LLM; single host, warm JVM): p50 **57 ms** / p95 82 ms at concurrency 1;
+~56 req/s at concurrency 8. Ingest **16 docs/s**. Per-client rate limit 60 rpm by default.
+
 ## Documentation
 
 Full documentation is in [`docs/`](docs/README.md), split into two tracks:
