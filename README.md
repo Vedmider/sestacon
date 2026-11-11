@@ -70,13 +70,20 @@ curl -XPOST http://localhost:18080/api/retrieve -H 'Content-Type: application/js
      -d '{"query":"rate limiting","metadata":{"sourceSystem":"jira","docType":"md"}}'
 ```
 
-## Retrieval quality & performance
+## Retrieval quality, evaluation & performance
 
 Black-box e2e against a real 128-doc / 1.3 MB product-doc corpus (hybrid mode, local MiniLM-384).
 
-**Quality** (12 labelled questions, k=10): Recall@10 **1.00** · MRR **0.85** · Hit@1 **75%** · Hit@3 **92%**.
-The right doc is always retrieved and usually ranked first; the 3 non-rank-1 cases are near-identical
-sibling specs (where section-chunking + a reranker would help more than a bigger embedder).
+**Quality** (12 labelled questions, k=10): Recall@10 **1.00** · MRR **0.86** · Hit@1 **75%** · Hit@3 **100%**.
+The right doc is always retrieved and usually ranked first.
+
+**Evaluation tooling** (`application/eval`): a retrieval eval (precision@k / recall@k / MRR, CI-gated),
+an **LLM-as-judge** answer eval (faithfulness + answer-relevance, pluggable judge), and an **A/B
+comparator** that scores two retrieval strategies on the same labelled set and reports the delta.
+Measured example — wide-recall + lexical reranker vs none on this corpus: **MRR 0.854 vs 0.861**
+(no gain; the term-overlap reranker pulls up vocabulary-sharing sibling specs — a cross-encoder
+reranker, which the `Reranker` port accepts as a drop-in, would be needed to move the numbers).
+The point: the harness decides on measurement, not belief.
 
 **Performance** (retrieve, no LLM; single host, warm JVM): p50 **57 ms** / p95 82 ms at concurrency 1;
 ~56 req/s at concurrency 8. Ingest **16 docs/s**. Per-client rate limit 60 rpm by default.

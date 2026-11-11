@@ -6,9 +6,9 @@ import io.github.vedmider.sestacon.domain.model.CachedAnswer;
 import io.github.vedmider.sestacon.domain.model.Completion;
 import io.github.vedmider.sestacon.domain.model.RetrievedChunk;
 import io.github.vedmider.sestacon.domain.model.TokenUsage;
+import io.github.vedmider.sestacon.domain.port.in.RetrieveUseCase;
 import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.ChatProvider;
-import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.EmbeddingProvider;
 import io.github.vedmider.sestacon.guardrail.GuardrailException;
 import io.github.vedmider.sestacon.guardrail.GuardrailProperties;
@@ -37,13 +37,11 @@ class RagQueryServiceTest {
         public int dimensions() { return 3; }
     }
 
-    static class FakeStore implements DocumentStore {
+    static class FakeRetrieve implements RetrieveUseCase {
         List<RetrievedChunk> toReturn = List.of();
-        public void add(List<io.github.vedmider.sestacon.domain.model.DocumentChunk> chunks) { }
-        public List<RetrievedChunk> search(String query, int topK) { return toReturn; }
-        public int deleteByDocumentId(String documentId, java.util.List<String> roles) { return 0; }
-        public void replace(List<io.github.vedmider.sestacon.domain.model.DocumentChunk> chunks,
-                            java.util.List<String> roles) { }
+        public List<RetrievedChunk> retrieve(String query, int topK, java.util.List<String> roles) {
+            return toReturn;
+        }
     }
 
     static class FakeCache implements AnswerCache {
@@ -64,7 +62,7 @@ class RagQueryServiceTest {
     }
 
     private final RecordingChat chat = new RecordingChat();
-    private final FakeStore store = new FakeStore();
+    private final FakeRetrieve store = new FakeRetrieve();
     private final FakeCache cache = new FakeCache();
     private final GuardrailProperties guardrails = new GuardrailProperties();
     private final RagProperties rag = new RagProperties();
