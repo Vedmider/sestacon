@@ -15,7 +15,14 @@ Endpoints:
   chunks, no LLM (token-cheap; the agent reasons itself).
 - `POST /api/chat` → a generated answer grounded in retrieved docs, with sources.
 - `POST /api/ingest` (file) / `POST /api/documents` (pre-chunked) → add documents. Re-posting an
-  existing `documentId` **replaces** all its chunks (supersession — no duplicates).
+  existing `documentId` **replaces** all its chunks (supersession — no duplicates). Both accept an
+  optional `sourceSystem` (recorded as provenance). At ingest, chunks are **enriched** with derived
+  metadata (rule-based, no LLM): `docType` (from the id's extension), `lang`, `tags` (keyword content
+  classification: runbook/api/security/config/architecture), `sourceSystem`, `ingestedAt`.
+  Caller-supplied metadata keys are never overwritten.
+- `POST /api/retrieve` may include an optional `metadata` map — an exact-match filter (every
+  key/value must be present on a chunk), combined with RBAC. E.g. `{"query":"...","metadata":
+  {"sourceSystem":"jira","docType":"md"}}`.
 - `DELETE /api/documents/{documentId}` → remove a document and all its chunks. All-or-nothing RBAC:
   your `X-Roles` must cover every chunk, else 403 and nothing is deleted; unknown id → `deleted: 0`.
 

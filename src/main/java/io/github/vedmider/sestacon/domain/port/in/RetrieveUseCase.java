@@ -18,4 +18,10 @@ public interface RetrieveUseCase {
 
     /** Retrieves only chunks visible to the given caller {@code roles}. */
     List<RetrievedChunk> retrieve(String query, int topK, List<String> roles);
+
+    /** Retrieves with RBAC and an optional exact-match metadata filter (all key/values must match). */
+    default List<RetrievedChunk> retrieve(String query, int topK, List<String> roles,
+                                          java.util.Map<String, String> metadataFilter) {
+        return retrieve(query, topK, roles);
+    }
 }

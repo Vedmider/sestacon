@@ -55,6 +55,21 @@ bash scripts/dev-local.sh down       # stop + wipe everything
   local Ollama LLM with `LLM_MODEL=llama3.1 OPENAI_BASE_URL=http://host.docker.internal:11434`.
   See [Local Development](docs/user-guide/local-development.md).
 
+## Metadata enrichment & filtered retrieval
+
+At ingest, every chunk is enriched with derived metadata — **rule-based, no LLM** (stays
+provider-agnostic): `docType` (from the document id's extension), `lang`, `tags` (keyword content
+classification — runbook/api/security/config/architecture), `sourceSystem` (provenance, from an
+optional `sourceSystem` ingest param), and `ingestedAt`. Caller-supplied metadata keys are preserved.
+
+Retrieval accepts an optional exact-match metadata filter, combined with RBAC. Example:
+
+```bash
+curl -XPOST http://localhost:18080/api/retrieve -H 'Content-Type: application/json' \
+     -H 'X-Roles: engineering' \
+     -d '{"query":"rate limiting","metadata":{"sourceSystem":"jira","docType":"md"}}'
+```
+
 ## Documentation
 
 Full documentation is in [`docs/`](docs/README.md), split into two tracks:

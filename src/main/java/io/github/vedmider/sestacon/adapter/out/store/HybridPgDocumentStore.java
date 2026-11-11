@@ -84,24 +84,33 @@ public class HybridPgDocumentStore implements DocumentStore {
 
     @Override
     public List<RetrievedChunk> search(String query, int topK, List<String> roles) {
+        return search(query, topK, roles, java.util.Map.of());
+    }
+
+    @Override
+    public List<RetrievedChunk> search(String query, int topK, List<String> roles,
+                                       java.util.Map<String, String> metadataFilter) {
         String queryVector = toVector(embeddings.embed(query));
         String callerRoles = toPgArray(withPublic(roles));
         int candidates = Math.max(topK * 5, 20);
+        boolean filtered = metadataFilter != null && !metadataFilter.isEmpty();
+        String metaClause = filtered ? " AND metadata @> ?::jsonb" : "";
+        String metaJson = filtered ? metaToJson(metadataFilter) : null;
 
         String sql = """
                 WITH vec AS (
                     SELECT id, document_id, content,
                            ROW_NUMBER() OVER (ORDER BY embedding <=> ?::vector) AS rnk
                     FROM rag_chunks
-                    WHERE allowed_roles && ?::text[]
+                    WHERE allowed_roles && ?::text[]%1$s
                     ORDER BY embedding <=> ?::vector
                     LIMIT ?
                 ),
                 txt AS (
                     SELECT id, document_id, content,
                            ROW_NUMBER() OVER (ORDER BY ts_rank(content_tsv, q.query) DESC) AS rnk
-                    FROM rag_chunks, websearch_to_tsquery('%s', ?) AS q(query)
-                    WHERE allowed_roles && ?::text[] AND content_tsv @@ q.query
+                    FROM rag_chunks, websearch_to_tsquery('%2$s', ?) AS q(query)
+                    WHERE allowed_roles && ?::text[] AND content_tsv @@ q.query%1$s
                     ORDER BY ts_rank(content_tsv, q.query) DESC
                     LIMIT ?
                 )
@@ -111,14 +120,38 @@ public class HybridPgDocumentStore implements DocumentStore {
                 FROM vec v FULL OUTER JOIN txt t ON v.id = t.id
                 ORDER BY score DESC
                 LIMIT ?
-                """.formatted(tsConfig);
+                """.formatted(metaClause, tsConfig);
+
+        List<Object> args = new ArrayList<>();
+        args.add(queryVector);
+        args.add(callerRoles);
+        if (filtered) {
+            args.add(metaJson);
+        }
+        args.add(queryVector);
+        args.add(candidates);
+        args.add(query);
+        args.add(callerRoles);
+        if (filtered) {
+            args.add(metaJson);
+        }
+        args.add(candidates);
+        args.add(rrfK);
+        args.add(rrfK);
+        args.add(topK);
 
         return jdbc.query(sql,
                 (rs, i) -> new RetrievedChunk(rs.getString("content"),
                         rs.getString("document_id"), rs.getDouble("score")),
-                queryVector, callerRoles, queryVector, candidates,
-                query, callerRoles, candidates,
-                rrfK, rrfK, topK);
+                args.toArray());
+    }
+
+    private String metaToJson(java.util.Map<String, String> filter) {
+        try {
+            return objectMapper.writeValueAsString(filter);
+        } catch (JsonProcessingException e) {
+            return "{}";
+        }
     }
 
     private static List<String> withPublic(List<String> roles) {

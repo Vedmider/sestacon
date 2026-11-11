@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -49,7 +50,7 @@ class RetrieveControllerWebTest {
 
     @Test
     void returnsChunksAndNeverCallsTheLlm() throws Exception {
-        when(retrieve.retrieve(eq("rollback policy"), eq(4), anyList()))
+        when(retrieve.retrieve(eq("rollback policy"), eq(4), anyList(), anyMap()))
                 .thenReturn(List.of(new RetrievedChunk("do X then Y", "guide.md", 0.91),
                         new RetrievedChunk("note Z", "adr.md", 0.80)));
 
@@ -66,7 +67,7 @@ class RetrieveControllerWebTest {
 
     @Test
     void honoursExplicitTopKAndRolesHeader() throws Exception {
-        when(retrieve.retrieve(eq("q"), eq(7), eq(List.of("ops", "sec"))))
+        when(retrieve.retrieve(eq("q"), eq(7), eq(List.of("ops", "sec")), anyMap()))
                 .thenReturn(List.of());
 
         mockMvc.perform(post("/api/retrieve").contentType(MediaType.APPLICATION_JSON)
@@ -74,18 +75,18 @@ class RetrieveControllerWebTest {
                         .content("{\"query\":\"q\",\"topK\":7}"))
                 .andExpect(status().isOk());
 
-        verify(retrieve).retrieve(eq("q"), eq(7), eq(List.of("ops", "sec")));
+        verify(retrieve).retrieve(eq("q"), eq(7), eq(List.of("ops", "sec")), anyMap());
     }
 
     @Test
     void topKIsCappedAt50() throws Exception {
-        when(retrieve.retrieve(eq("q"), eq(50), anyList())).thenReturn(List.of());
+        when(retrieve.retrieve(eq("q"), eq(50), anyList(), anyMap())).thenReturn(List.of());
 
         mockMvc.perform(post("/api/retrieve").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"query\":\"q\",\"topK\":9999}"))
                 .andExpect(status().isOk());
 
-        verify(retrieve).retrieve(eq("q"), eq(50), anyList());
+        verify(retrieve).retrieve(eq("q"), eq(50), anyList(), anyMap());
     }
 
     @Test
@@ -94,7 +95,7 @@ class RetrieveControllerWebTest {
                         .content("{\"query\":\"   \"}"))
                 .andExpect(status().isBadRequest());
         verify(retrieve, never()).retrieve(org.mockito.ArgumentMatchers.anyString(),
-                org.mockito.ArgumentMatchers.anyInt(), anyList());
+                org.mockito.ArgumentMatchers.anyInt(), anyList(), anyMap());
     }
 
     @Test

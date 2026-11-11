@@ -42,7 +42,7 @@ class DocumentControllerWebTest {
 
     @Test
     void storesChunksFromStandardContract() throws Exception {
-        when(ingestion.ingest(anyList())).thenReturn(2);
+        when(ingestion.ingest(anyList(), org.mockito.ArgumentMatchers.anyString())).thenReturn(2);
 
         mockMvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -56,7 +56,7 @@ class DocumentControllerWebTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(ingestion).ingest(captor.capture());
+        org.mockito.Mockito.verify(ingestion).ingest(captor.capture(), org.mockito.ArgumentMatchers.anyString());
         List<DocumentChunk> sent = captor.getValue();
         assertThat(sent).hasSize(2);
         assertThat(sent.get(0).aclTags()).containsExactly("engineering");
