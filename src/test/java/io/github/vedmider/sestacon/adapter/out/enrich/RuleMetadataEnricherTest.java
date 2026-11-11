@@ -73,4 +73,43 @@ class RuleMetadataEnricherTest {
         assertThat(out.metadata()).containsEntry("sourceSystem", "jira");    // preserved
         assertThat(out.metadata()).containsKey("tags");                      // still added
     }
+
+    @Test
+    void docTypeEdgeCases() {
+        assertThat(enrichOne("archive.tar.gz", "x", "s").metadata()).containsEntry("docType", "gz");
+        assertThat(enrichOne("NOEXTENSION", "x", "s").metadata()).containsEntry("docType", "unknown");
+        assertThat(enrichOne("README.MD", "x", "s").metadata()).containsEntry("docType", "md");
+        assertThat(enrichOne("trailingdot.", "x", "s").metadata()).containsEntry("docType", "unknown");
+        assertThat(enrichOne("explain:repo:docs/a.md", "x", "s").metadata())
+                .containsEntry("docType", "md");
+    }
+
+    @Test
+    void langBoundaryNeedsTwoStopwords() {
+        assertThat(enrichOne("d.md", "the cat sleeps", "s").metadata())
+                .containsEntry("lang", "unknown");                            // 1 stopword
+        assertThat(enrichOne("d.md", "the cat and the dog", "s").metadata())
+                .containsEntry("lang", "en");                                 // 2 stopwords
+    }
+
+    @Test
+    void conflictingTagRulesYieldAllMatchingTagsDeterministically() {
+        @SuppressWarnings("unchecked")
+        List<String> tags = (List<String>) enrichOne("d.md",
+                "the auth endpoint request needs a token during the incident rollback", "s")
+                .metadata().get("tags");
+        assertThat(tags).contains("api", "security", "runbook");
+    }
+
+    @Test
+    void everyDerivedKeyIsPreservedWhenCallerSetsIt() {
+        DocumentChunk given = new DocumentChunk("d.md", "", "the and for incident",
+                Map.of("docType", "x", "lang", "fr", "sourceSystem", "jira",
+                        "ingestedAt", "2000-01-01T00:00:00Z", "tags", List.of("manual")),
+                List.of("public"));
+        DocumentChunk out = enricher.enrich(List.of(given), "snowflake").get(0);
+        assertThat(out.metadata()).containsEntry("docType", "x").containsEntry("lang", "fr")
+                .containsEntry("sourceSystem", "jira").containsEntry("ingestedAt", "2000-01-01T00:00:00Z")
+                .containsEntry("tags", List.of("manual"));
+    }
 }

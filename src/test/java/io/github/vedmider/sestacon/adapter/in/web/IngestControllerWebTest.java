@@ -58,6 +58,24 @@ class IngestControllerWebTest {
     }
 
     @Test
+    void bindsSourceSystemParamAndPassesItThrough() throws Exception {
+        org.mockito.Mockito.when(ingestion.ingest(
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq("snowflake"))).thenReturn(3);
+
+        mockMvc.perform(multipart("/api/ingest")
+                        .file(file("a.txt", "text/plain", "hello".getBytes()))
+                        .param("sourceSystem", "snowflake"))
+                .andExpect(status().isOk());
+
+        org.mockito.Mockito.verify(ingestion).ingest(
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq("snowflake"));
+    }
+
+    @Test
     void emptyFileIsRejected() throws Exception {
         mockMvc.perform(multipart("/api/ingest").file(file("empty.txt", "text/plain", new byte[0])))
                 .andExpect(status().isBadRequest());
