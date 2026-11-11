@@ -56,7 +56,8 @@ public class RetrieveController {
                             + " characters");
         }
         return retrieve.retrieve(request.query(), effectiveTopK(request.topK()),
-                RoleHeader.parse(rolesHeader));
+                RoleHeader.parse(rolesHeader),
+                request.metadata() == null ? java.util.Map.of() : request.metadata());
     }
 
     private int effectiveTopK(Integer requested) {
@@ -66,6 +67,6 @@ public class RetrieveController {
         return Math.min(requested, MAX_TOP_K);
     }
 
-    public record RetrieveRequest(String query, Integer topK) {
+    public record RetrieveRequest(String query, Integer topK, java.util.Map<String, String> metadata) {
     }
 }

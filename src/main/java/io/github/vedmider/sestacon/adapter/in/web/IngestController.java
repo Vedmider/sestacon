@@ -46,7 +46,8 @@ public class IngestController {
                     + "public). 400/413/415 on invalid input.")
     public ResponseEntity<Map<String, Object>> ingest(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam(value = "aclTags", required = false) List<String> aclTags) {
+            @RequestParam(value = "aclTags", required = false) List<String> aclTags,
+            @RequestParam(value = "sourceSystem", required = false) String sourceSystem) {
         if (files.length == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No files provided");
         }
@@ -58,7 +59,8 @@ public class IngestController {
             validate(file);
             try {
                 int chunks = ingestion.ingest(filename(file), file.getBytes(),
-                        aclTags == null ? List.of() : aclTags);
+                        aclTags == null ? List.of() : aclTags,
+                        sourceSystem == null || sourceSystem.isBlank() ? "unknown" : sourceSystem);
                 totalChunks += chunks;
                 results.add(Map.of("file", filename(file), "chunks", chunks));
                 log.info("event=ingest_ok file=\"{}\" size={} chunks={}",

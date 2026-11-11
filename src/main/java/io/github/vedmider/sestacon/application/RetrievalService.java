@@ -29,8 +29,14 @@ public class RetrievalService implements RetrieveUseCase {
 
     @Override
     public List<RetrievedChunk> retrieve(String query, int topK, List<String> roles) {
+        return retrieve(query, topK, roles, java.util.Map.of());
+    }
+
+    @Override
+    public List<RetrievedChunk> retrieve(String query, int topK, List<String> roles,
+                                         java.util.Map<String, String> metadataFilter) {
         int wide = Math.max(topK, 1) * recallFactor;
-        List<RetrievedChunk> candidates = documentStore.search(query, wide, roles);
+        List<RetrievedChunk> candidates = documentStore.search(query, wide, roles, metadataFilter);
         return reranker.rerank(query, candidates, topK);
     }
 }

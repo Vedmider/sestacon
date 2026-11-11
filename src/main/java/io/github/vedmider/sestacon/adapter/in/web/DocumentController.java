@@ -50,12 +50,15 @@ public class DocumentController {
                     + "metadata, aclTags}. Chunks are embedded and stored. aclTags default to "
                     + "[\"public\"] when omitted. Returns 400 if any chunk has blank "
                     + "documentId or content.")
-    public ResponseEntity<Map<String, Object>> ingest(@RequestBody List<ChunkRequest> chunks) {
+    public ResponseEntity<Map<String, Object>> ingest(@RequestBody List<ChunkRequest> chunks,
+            @org.springframework.web.bind.annotation.RequestParam(value = "sourceSystem",
+                    required = false) String sourceSystem) {
         if (chunks == null || chunks.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No chunks provided");
         }
         List<DocumentChunk> domain = chunks.stream().map(ChunkRequest::toDomain).toList();
-        int stored = ingestion.ingest(domain);
+        int stored = ingestion.ingest(domain,
+                sourceSystem == null || sourceSystem.isBlank() ? "unknown" : sourceSystem);
         log(domain);
         return ResponseEntity.ok(Map.of("stored", stored));
     }

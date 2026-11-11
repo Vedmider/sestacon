@@ -22,6 +22,16 @@ public interface DocumentStore {
     }
 
     /**
+     * Retrieves with RBAC and an optional exact-match metadata filter (every key/value in
+     * {@code metadataFilter} must be present on a chunk's metadata). Stores that cannot filter on
+     * metadata ignore it and fall back to the RBAC search.
+     */
+    default List<RetrievedChunk> search(String query, int topK, List<String> roles,
+                                        java.util.Map<String, String> metadataFilter) {
+        return search(query, topK, roles);
+    }
+
+    /**
      * Deletes every chunk of {@code documentId}, enforcing <b>all-or-nothing</b> RBAC: the delete
      * proceeds only if {@code roles} (plus {@code "public"}) cover <i>all</i> chunks of the document.
      * If any chunk is not visible to the caller, nothing is deleted and

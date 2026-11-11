@@ -39,7 +39,7 @@ class IngestControllerWebTest {
     void setup() {
         when(properties.getMaxFileSizeBytes()).thenReturn(1024L);
         when(properties.getAllowedContentTypes()).thenReturn(List.of("text/plain", "application/pdf"));
-        when(ingestion.ingest(any(), any(), any())).thenReturn(3);
+        when(ingestion.ingest(any(), any(), any(), any())).thenReturn(3);
     }
 
     private MockMultipartFile file(String name, String type, byte[] bytes) {

@@ -41,7 +41,7 @@ class IngestApiContractTest {
     void setup() {
         when(properties.getMaxFileSizeBytes()).thenReturn(1_000_000L);
         when(properties.getAllowedContentTypes()).thenReturn(List.of("text/plain"));
-        when(ingestion.ingest(any(), any(), any())).thenReturn(7);
+        when(ingestion.ingest(any(), any(), any(), any())).thenReturn(7);
     }
 
     @Test

@@ -11,5 +11,10 @@ public interface DocumentIngestionUseCase {
     }
 
     /** Ingests, tagging every chunk with {@code aclTags} (empty = public) for RBAC retrieval. */
-    int ingest(String filename, byte[] content, List<String> aclTags);
+    default int ingest(String filename, byte[] content, List<String> aclTags) {
+        return ingest(filename, content, aclTags, "unknown");
+    }
+
+    /** Ingests with acl tags and records {@code sourceSystem} as provenance metadata. */
+    int ingest(String filename, byte[] content, List<String> aclTags, String sourceSystem);
 }

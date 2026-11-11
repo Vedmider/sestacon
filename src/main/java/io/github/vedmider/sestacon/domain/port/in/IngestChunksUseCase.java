@@ -11,5 +11,10 @@ import java.util.List;
  */
 public interface IngestChunksUseCase {
 
-    int ingest(List<DocumentChunk> chunks);
+    default int ingest(List<DocumentChunk> chunks) {
+        return ingest(chunks, "unknown");
+    }
+
+    /** Ingests chunks, recording {@code sourceSystem} as provenance metadata. */
+    int ingest(List<DocumentChunk> chunks, String sourceSystem);
 }
