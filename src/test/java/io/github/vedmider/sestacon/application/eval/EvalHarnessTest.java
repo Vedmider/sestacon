@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -77,6 +78,51 @@ class EvalHarnessTest {
     void reportMarkdownHasRowsAndMean() {
         var harness = new EvalHarness(retriever(Map.of("q", List.of(hit("doc-a")))));
         String md = harness.run(List.of(new Case("q", "doc-a")), 5, List.of()).toMarkdown();
-        assertThat(md).contains("P@k", "mean");
+        assertThat(md).contains("P@k", "R@k", "mean");
+    }
+
+    @Test
+    void recallCountsDistinctRelevantSourcesFound() {
+        // two sources relevant; only one retrieved -> recall 1/2, but that one is at rank 1
+        var harness = new EvalHarness(retriever(Map.of(
+                "q", List.of(hit("doc-a"), hit("noise")))));
+
+        Report r = harness.run(
+                List.of(new Case("q", Set.of("doc-a", "doc-b"))), 5, List.of());
+
+        assertThat(r.meanRecallAtK()).isCloseTo(0.5, within(1e-9));
+        assertThat(r.mrr()).isCloseTo(1.0, within(1e-9));
+    }
+
+    @Test
+    void recallIsFullWhenAllRelevantSourcesRetrieved() {
+        var harness = new EvalHarness(retriever(Map.of(
+                "q", List.of(hit("doc-a"), hit("doc-b")))));
+
+        Report r = harness.run(
+                List.of(new Case("q", Set.of("doc-a", "doc-b"))), 5, List.of());
+
+        assertThat(r.meanRecallAtK()).isCloseTo(1.0, within(1e-9));
+    }
+
+    @Test
+    void duplicateRelevantHitsDoNotInflateRecallBeyondOne() {
+        var harness = new EvalHarness(retriever(Map.of(
+                "q", List.of(hit("doc-a"), hit("doc-a"), hit("doc-a")))));
+
+        Report r = harness.run(List.of(new Case("q", Set.of("doc-a"))), 5, List.of());
+
+        assertThat(r.meanRecallAtK()).isCloseTo(1.0, within(1e-9));
+        assertThat(r.meanPrecisionAtK()).isCloseTo(1.0, within(1e-9));   // 3 relevant / 3 hits
+    }
+
+    @Test
+    void missingRelevantSourceScoresZeroRecall() {
+        var harness = new EvalHarness(retriever(Map.of(
+                "q", List.of(hit("noise-1"), hit("noise-2")))));
+
+        Report r = harness.run(List.of(new Case("q", Set.of("doc-target"))), 5, List.of());
+
+        assertThat(r.meanRecallAtK()).isZero();
     }
 }
