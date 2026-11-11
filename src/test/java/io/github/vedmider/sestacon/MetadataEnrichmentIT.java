@@ -115,4 +115,36 @@ class MetadataEnrichmentIT {
 
         assertThat(asPublic).isEmpty();   // metadata matches, but RBAC hides it
     }
+
+    @Test
+    void multiKeyFilterIsAndSemantics() {
+        ingest.ingest(List.of(DocumentChunk.of("a.md", "zorblax in jira md")), "jira");
+        ingest.ingest(List.of(DocumentChunk.of("b.pdf", "zorblax in jira pdf")), "jira");
+
+        List<RetrievedChunk> jiraMd = store.search("zorblax", 10, List.of(),
+                Map.of("sourceSystem", "jira", "docType", "md"));
+
+        assertThat(jiraMd).extracting(RetrievedChunk::source).containsExactly("a.md");
+    }
+
+    @Test
+    void filterValueMismatchReturnsEmpty() {
+        ingest.ingest(List.of(DocumentChunk.of("a.md", "zorblax in jira")), "jira");
+
+        List<RetrievedChunk> none =
+                store.search("zorblax", 10, List.of(), Map.of("sourceSystem", "nope"));
+
+        assertThat(none).isEmpty();
+    }
+
+    @Test
+    void sqlishFilterValueIsInjectionSafe() {
+        ingest.ingest(List.of(DocumentChunk.of("a.md", "zorblax here")), "jira");
+
+        List<RetrievedChunk> result = store.search("zorblax", 10, List.of(),
+                Map.of("sourceSystem", "'; DROP TABLE rag_chunks; --"));
+
+        assertThat(result).isEmpty();   // no match, and the table still exists (next query proves it)
+        assertThat(store.search("zorblax", 10, List.of())).isNotEmpty();
+    }
 }

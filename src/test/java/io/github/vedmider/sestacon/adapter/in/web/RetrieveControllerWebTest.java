@@ -99,6 +99,30 @@ class RetrieveControllerWebTest {
     }
 
     @Test
+    void bindsMetadataFilterFromBodyAndPassesItThrough() throws Exception {
+        when(retrieve.retrieve(eq("q"), eq(4),
+                anyList(), eq(java.util.Map.of("sourceSystem", "jira", "docType", "md"))))
+                .thenReturn(List.of());
+
+        mockMvc.perform(post("/api/retrieve").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"q\",\"metadata\":{\"sourceSystem\":\"jira\","
+                                + "\"docType\":\"md\"}}"))
+                .andExpect(status().isOk());
+
+        verify(retrieve).retrieve(eq("q"), eq(4), anyList(),
+                eq(java.util.Map.of("sourceSystem", "jira", "docType", "md")));
+    }
+
+    @Test
+    void ignoresUnknownRequestFields() throws Exception {
+        when(retrieve.retrieve(eq("q"), eq(4), anyList(), anyMap())).thenReturn(List.of());
+
+        mockMvc.perform(post("/api/retrieve").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"q\",\"somethingNew\":123,\"metadata\":{}}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void overLongQueryReturns400() throws Exception {
         String longQuery = "a".repeat(5000);
         mockMvc.perform(post("/api/retrieve").contentType(MediaType.APPLICATION_JSON)
