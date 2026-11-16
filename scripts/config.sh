@@ -43,4 +43,4 @@ OPENAI_BASE_URL="${OPENAI_BASE_URL:-https://api.groq.com/openai}"
 LLM_MODEL="${LLM_MODEL:-openai/gpt-oss-20b}"
 
 # Retrieval: vector = dense only; hybrid = vector + full-text + RBAC + RRF.
-RETRIEVAL_MODE="${RETRIEVAL_MODE:-vector}"                 # vector | hybrid
+RETRIEVAL_MODE="${RETRIEVAL_MODE:-hybrid}"                 # vector | hybrid (hybrid: vector + full-text + RBAC + RRF)

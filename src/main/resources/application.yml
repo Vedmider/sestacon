@@ -55,10 +55,10 @@ app:
       provided context. If the answer is not contained in the context, say you
       do not know. Be concise and cite facts from the context.
   retrieval:
-    mode: ${RETRIEVAL_MODE:vector}          # vector | hybrid
+    mode: ${RETRIEVAL_MODE:hybrid}          # vector | hybrid (hybrid: vector + full-text + RBAC + RRF)
     rrf-k: ${RETRIEVAL_RRF_K:60}
     recall-factor: ${RETRIEVAL_RECALL_FACTOR:4}  # first-pass width = topK * factor, then rerank
-    min-score: ${RETRIEVAL_MIN_SCORE:0.2}        # below this blended relevance = no confident match (omit)
+    min-score: ${RETRIEVAL_MIN_SCORE:0.1}        # below this blended relevance = no confident match (omit); tuned for hybrid RRF scale
     text-search-config: ${RETRIEVAL_TS_CONFIG:english}
   embedding:
     provider: ${EMBEDDING_PROVIDER:local}   # local | openai
