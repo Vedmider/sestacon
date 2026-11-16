@@ -25,7 +25,8 @@ public class RerankerConfig {
         return (query, candidates, topK) -> {
             Set<String> terms = tokenize(query);
             return candidates.stream()
-                    .sorted(Comparator.comparingDouble((RetrievedChunk c) -> blended(c, terms)).reversed())
+                    .map(c -> new RetrievedChunk(c.text(), c.source(), blended(c, terms)))
+                    .sorted(Comparator.comparingDouble(RetrievedChunk::score).reversed())
                     .limit(Math.max(topK, 0))
                     .toList();
         };

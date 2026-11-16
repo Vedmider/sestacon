@@ -58,6 +58,7 @@ app:
     mode: ${RETRIEVAL_MODE:vector}          # vector | hybrid
     rrf-k: ${RETRIEVAL_RRF_K:60}
     recall-factor: ${RETRIEVAL_RECALL_FACTOR:4}  # first-pass width = topK * factor, then rerank
+    min-score: ${RETRIEVAL_MIN_SCORE:0.2}        # below this blended relevance = no confident match (omit)
     text-search-config: ${RETRIEVAL_TS_CONFIG:english}
   embedding:
     provider: ${EMBEDDING_PROVIDER:local}   # local | openai

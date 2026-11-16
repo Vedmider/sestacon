@@ -53,6 +53,18 @@ class RetrievalServiceTest {
     }
 
     @Test
+    void noConfidentMatchIsOmittedBelowTheFloor() {
+        when(store.search(eq("zzzrareword"), eq(8), anyList(), anyMap())).thenReturn(List.of(
+                new RetrievedChunk("completely unrelated prose about cats", "cats.md", 0.0164),
+                new RetrievedChunk("more unrelated prose about dogs", "dogs.md", 0.0161)));
+
+        RetrievalService svc = new RetrievalService(store, reranker, 4);
+        List<RetrievedChunk> out = svc.retrieve("zzzrareword", 2, List.of());
+
+        assertThat(out).isEmpty();
+    }
+
+    @Test
     void recallFactorIsClampedToAtLeastOne() {
         when(store.search(eq("q"), eq(3), anyList(), anyMap())).thenReturn(List.of(
                 new RetrievedChunk("x", "x.md", 0.1)));
