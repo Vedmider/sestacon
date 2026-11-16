@@ -78,14 +78,35 @@ public class PgVectorDocumentStore implements DocumentStore {
 
     @Override
     public List<RetrievedChunk> search(String query, int topK, List<String> roles) {
+        return search(query, topK, roles, java.util.Map.of());
+    }
+
+    @Override
+    public List<RetrievedChunk> search(String query, int topK, List<String> roles,
+                                       Map<String, String> metadataFilter) {
         int pool = Math.max(topK * 4, 20);
-        List<Document> hits = vectorStore.similaritySearch(
-                SearchRequest.builder().query(query).topK(pool).build());
+        SearchRequest.Builder builder = SearchRequest.builder().query(query).topK(pool);
+        if (metadataFilter != null && !metadataFilter.isEmpty()) {
+            builder.filterExpression(toFilter(metadataFilter));
+        }
+        List<Document> hits = vectorStore.similaritySearch(builder.build());
         return hits.stream()
                 .filter(d -> visibleTo(d, roles))
                 .limit(topK)
                 .map(PgVectorDocumentStore::toChunk)
                 .toList();
+    }
+
+    /** Conjunction of eq(key,value) over the requested metadata, as a pgvector filter expression. */
+    private static org.springframework.ai.vectorstore.filter.Filter.Expression toFilter(
+            Map<String, String> metadataFilter) {
+        var fb = new org.springframework.ai.vectorstore.filter.FilterExpressionBuilder();
+        org.springframework.ai.vectorstore.filter.FilterExpressionBuilder.Op combined = null;
+        for (Map.Entry<String, String> e : metadataFilter.entrySet()) {
+            var op = fb.eq(e.getKey(), e.getValue());
+            combined = combined == null ? op : fb.and(combined, op);
+        }
+        return combined.build();
     }
 
     /** RBAC at the adapter: a chunk is visible if it is public, untagged, or shares a role. */

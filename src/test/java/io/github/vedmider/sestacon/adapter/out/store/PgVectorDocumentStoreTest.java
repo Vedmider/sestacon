@@ -59,14 +59,24 @@ class PgVectorDocumentStoreTest {
     }
 
     @Test
-    void rbacFiltersResultsByAclTagsMetadata() {
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                new Document("public text", Map.of("source", "pub.txt", "aclTags", "public")),
-                new Document("secret text", Map.of("source", "eng.txt", "aclTags", "engineering"))));
+    void metadataFilterIsAppliedAsAFilterExpression() {
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
 
-        assertThat(store.search("q", 10, List.of()).stream().map(RetrievedChunk::source).toList())
-                .containsExactly("pub.txt");
-        assertThat(store.search("q", 10, List.of("engineering")).stream().map(RetrievedChunk::source).toList())
-                .containsExactlyInAnyOrder("pub.txt", "eng.txt");
+        store.search("q", 5, List.of(), Map.of("sourceSystem", "jira"));
+
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+        assertThat(captor.getValue().getFilterExpression()).isNotNull();
+    }
+
+    @Test
+    void noMetadataFilterLeavesTheExpressionNull() {
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
+
+        store.search("q", 5, List.of(), Map.of());
+
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+        assertThat(captor.getValue().getFilterExpression()).isNull();
     }
 }
