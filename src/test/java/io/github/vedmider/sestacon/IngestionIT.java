@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest(properties = {
         "spring.ai.vectorstore.pgvector.dimensions=384",
+        "app.retrieval.mode=vector",
         "spring.autoconfigure.exclude=org.springframework.ai.model.transformers.autoconfigure.TransformersEmbeddingModelAutoConfiguration"
 })
 class IngestionIT {

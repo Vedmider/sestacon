@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
 @SpringBootTest(properties = {
         "spring.ai.vectorstore.pgvector.dimensions=384",
+        "app.retrieval.mode=vector",
         "spring.autoconfigure.exclude="
                 + "org.springframework.ai.model.transformers.autoconfigure.TransformersEmbeddingModelAutoConfiguration,"
                 + "org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration"
