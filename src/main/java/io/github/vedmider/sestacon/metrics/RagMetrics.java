@@ -12,6 +12,7 @@ public class RagMetrics {
     private final Counter cacheHits;
     private final Counter cacheMisses;
     private final Counter guardrailBlocks;
+    private final Counter contextInjectionsDropped;
     private final Counter promptTokens;
     private final Counter completionTokens;
     private final MeterRegistry registry;
@@ -27,6 +28,8 @@ public class RagMetrics {
                 .description("Semantic cache misses").register(registry);
         this.guardrailBlocks = Counter.builder("rag.guardrail.blocks")
                 .description("Requests blocked by guardrails").register(registry);
+        this.contextInjectionsDropped = Counter.builder("rag.guardrail.context_injections_dropped")
+                .description("Retrieved chunks dropped from context for prompt injection").register(registry);
         this.promptTokens = Counter.builder("rag.llm.tokens")
                 .description("LLM token usage").tag("type", "prompt").register(registry);
         this.completionTokens = Counter.builder("rag.llm.tokens")
@@ -51,6 +54,10 @@ public class RagMetrics {
 
     public void recordGuardrailBlock() {
         guardrailBlocks.increment();
+    }
+
+    public void recordContextInjectionDropped() {
+        contextInjectionsDropped.increment();
     }
 
     public void recordTokens(long prompt, long completion) {

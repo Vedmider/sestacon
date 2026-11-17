@@ -112,6 +112,7 @@ public class RagQueryService implements RagQueryUseCase {
             chunks = chunks.stream().filter(c -> {
                 if (injectionDetector.isInjection(c.text())) {
                     SecurityAudit.contextInjectionDropped(c.source());
+                    metrics.recordContextInjectionDropped();
                     return false;
                 }
                 return true;

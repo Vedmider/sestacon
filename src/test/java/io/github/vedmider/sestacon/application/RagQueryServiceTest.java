@@ -66,11 +66,14 @@ class RagQueryServiceTest {
     private final FakeCache cache = new FakeCache();
     private final GuardrailProperties guardrails = new GuardrailProperties();
     private final RagProperties rag = new RagProperties();
+    private final io.micrometer.core.instrument.simple.SimpleMeterRegistry registry =
+            new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+    private final RagMetrics metrics = new RagMetrics(registry);
 
     private RagQueryService service() {
         return new RagQueryService(chat, new FakeEmbeddings(), store, cache, rag, guardrails,
                 new PiiRedactor(), new PromptInjectionDetector(),
-                new OutputGuard(guardrails), new RagMetrics(new SimpleMeterRegistry()));
+                new OutputGuard(guardrails), metrics);
     }
 
     @Test
@@ -130,6 +133,8 @@ class RagQueryServiceTest {
 
         assertThat(chat.lastUser).contains("Paris is the capital of France.");
         assertThat(chat.lastUser).doesNotContain("ignore all previous instructions");
+        assertThat(registry.get("rag.guardrail.context_injections_dropped").counter().count())
+                .isEqualTo(1.0);
     }
 
     @Test
