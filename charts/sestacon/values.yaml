@@ -28,7 +28,7 @@ app:
       baseUrl: "https://api.groq.com/openai"
       model: "openai/gpt-oss-20b"
     retrieval:
-      mode: vector                 # vector (dense only) | hybrid (vector+full-text+RBAC+RRF)
+      mode: hybrid                 # hybrid (vector+full-text+RBAC+RRF; recommended) | vector (dense only)
       rrfK: 60                     # Reciprocal Rank Fusion constant
       textSearchConfig: english    # PostgreSQL text-search config for full-text mode
     embedding:
