@@ -30,4 +30,19 @@ class TikaDocumentParserTest {
         assertThat(chunks.stream().map(DocumentChunk::content).reduce("", String::concat))
                 .contains("pgvector");
     }
+
+    @Test
+    void overlapPrependsPreviousChunkTailSoBoundaryFactsSurvive() {
+        List<String> out = TikaDocumentParser.withOverlap(
+                List.of("alpha beta BOUNDARYFACT", "gamma delta epsilon"), 10);
+        assertThat(out).hasSize(2);
+        assertThat(out.get(0)).isEqualTo("alpha beta BOUNDARYFACT");
+        assertThat(out.get(1)).startsWith("UNDARYFACT\n").endsWith("gamma delta epsilon");
+    }
+
+    @Test
+    void overlapIsANoOpForZeroOrSingleChunk() {
+        assertThat(TikaDocumentParser.withOverlap(List.of("only"), 10)).containsExactly("only");
+        assertThat(TikaDocumentParser.withOverlap(List.of("a", "b"), 0)).containsExactly("a", "b");
+    }
 }
