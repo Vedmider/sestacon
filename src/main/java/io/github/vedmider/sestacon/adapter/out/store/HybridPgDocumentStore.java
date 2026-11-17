@@ -147,6 +147,17 @@ public class HybridPgDocumentStore implements DocumentStore {
                 args.toArray());
     }
 
+    @Override
+    public int sourceTokens(String documentId) {
+        List<String> contents = jdbc.queryForList(
+                "SELECT content FROM rag_chunks WHERE document_id = ?", String.class, documentId);
+        int total = 0;
+        for (String content : contents) {
+            total += io.github.vedmider.sestacon.application.TokenEstimate.count(content);
+        }
+        return total;
+    }
+
     private String metaToJson(java.util.Map<String, String> filter) {
         try {
             return objectMapper.writeValueAsString(filter);

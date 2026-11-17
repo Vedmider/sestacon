@@ -65,6 +65,19 @@ class RetrievalServiceTest {
     }
 
     @Test
+    void enrichesEachHitWithFullSourceDocumentTokenCount() {
+        when(store.search(eq("rate limiting"), eq(12), anyList(), anyMap())).thenReturn(List.of(
+                new RetrievedChunk("token bucket rate limiting per client", "ratelimit.md", 0.80)));
+        when(store.sourceTokens("ratelimit.md")).thenReturn(321);
+
+        RetrievalService svc = new RetrievalService(store, reranker, 4);
+        List<RetrievedChunk> out = svc.retrieve("rate limiting", 3, List.of());
+
+        assertThat(out).hasSize(1);
+        assertThat(out.get(0).sourceTokens()).isEqualTo(321);
+    }
+
+    @Test
     void recallFactorIsClampedToAtLeastOne() {
         when(store.search(eq("q"), eq(3), anyList(), anyMap())).thenReturn(List.of(
                 new RetrievedChunk("x", "x.md", 0.1)));

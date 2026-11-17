@@ -97,6 +97,20 @@ public class PgVectorDocumentStore implements DocumentStore {
                 .toList();
     }
 
+    @Override
+    public int sourceTokens(String documentId) {
+        var filter = new org.springframework.ai.vectorstore.filter.FilterExpressionBuilder()
+                .eq("documentId", documentId).build();
+        List<Document> chunks = vectorStore.similaritySearch(
+                SearchRequest.builder().query(documentId).topK(10_000)
+                        .filterExpression(filter).build());
+        int total = 0;
+        for (Document d : chunks) {
+            total += io.github.vedmider.sestacon.application.TokenEstimate.count(d.getText());
+        }
+        return total;
+    }
+
     /** Conjunction of eq(key,value) over the requested metadata, as a pgvector filter expression. */
     private static org.springframework.ai.vectorstore.filter.Filter.Expression toFilter(
             Map<String, String> metadataFilter) {

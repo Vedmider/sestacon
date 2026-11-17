@@ -39,6 +39,15 @@ public interface DocumentStore {
      *
      * @return number of chunks removed (0 if the id did not exist)
      */
+    /**
+     * Estimated token size of the full source document {@code documentId} (the sum over all its
+     * stored chunks). Lets a caller credit the whole-document read avoided by using a grounded
+     * chunk. Stores that cannot compute it return 0.
+     */
+    default int sourceTokens(String documentId) {
+        return 0;
+    }
+
     int deleteByDocumentId(String documentId, List<String> roles);
 
     /**

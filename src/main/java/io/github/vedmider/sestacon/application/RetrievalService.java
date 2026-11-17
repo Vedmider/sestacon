@@ -46,8 +46,11 @@ public class RetrievalService implements RetrieveUseCase {
                                          java.util.Map<String, String> metadataFilter) {
         int wide = Math.max(topK, 1) * recallFactor;
         List<RetrievedChunk> candidates = documentStore.search(query, wide, roles, metadataFilter);
+        java.util.Map<String, Integer> tokensBySource = new java.util.HashMap<>();
         return reranker.rerank(query, candidates, topK).stream()
                 .filter(c -> c.score() >= minScore)   // below the floor = no confident match -> omit
+                .map(c -> c.withSourceTokens(
+                        tokensBySource.computeIfAbsent(c.source(), documentStore::sourceTokens)))
                 .toList();
     }
 }
