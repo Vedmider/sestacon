@@ -6,7 +6,7 @@
     <springProfile name="dev">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>%d{HH:mm:ss.SSS} %-5level [%X{requestId:-no-req}] [%X{clientIp:-}] %marker %logger{36} - %msg%n</pattern>
+                <pattern>%d{HH:mm:ss.SSS} %-5level [%X{traceId:-no-trace}] [%X{requestId:-no-req}] [%X{clientIp:-}] %marker %logger{36} - %msg%n</pattern>
             </encoder>
         </appender>
         <root level="INFO">
@@ -19,6 +19,7 @@
     <springProfile name="prod">
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>traceId</includeMdcKeyName>
                 <includeMdcKeyName>requestId</includeMdcKeyName>
                 <includeMdcKeyName>clientIp</includeMdcKeyName>
                 <includeMdcKeyName>method</includeMdcKeyName>

@@ -28,6 +28,7 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RequestCorrelationFilter.class);
     private static final String REQUEST_ID = "X-Request-Id";
+    private static final String TRACE_ID = "X-Trace-Id";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -36,11 +37,14 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
         if (!StringUtils.hasText(requestId)) {
             requestId = UUID.randomUUID().toString();
         }
+        String traceId = resolveTraceId(request);
         MDC.put("requestId", requestId);
+        MDC.put("traceId", traceId);
         MDC.put("clientIp", ClientIp.of(request));
         MDC.put("method", request.getMethod());
         MDC.put("path", request.getRequestURI());
         response.setHeader(REQUEST_ID, requestId);
+        response.setHeader(TRACE_ID, traceId);
 
         long start = System.nanoTime();
         try {
@@ -51,5 +55,18 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
             log.info("event=http_request status={} durationMs={}", response.getStatus(), ms);
             MDC.clear();
         }
+    }
+
+    /** Shared cross-service trace id: W3C traceparent trace-id, else inbound X-Trace-Id, else generated. */
+    private static String resolveTraceId(HttpServletRequest request) {
+        String traceparent = request.getHeader("traceparent");
+        if (traceparent != null) {
+            String[] parts = traceparent.split("-");
+            if (parts.length >= 2 && parts[1].length() == 32) {
+                return parts[1];
+            }
+        }
+        String header = request.getHeader(TRACE_ID);
+        return StringUtils.hasText(header) ? header : UUID.randomUUID().toString().replace("-", "");
     }
 }
