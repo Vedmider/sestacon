@@ -24,7 +24,7 @@ public class RetrievalService implements RetrieveUseCase {
     @org.springframework.beans.factory.annotation.Autowired
     public RetrievalService(DocumentStore documentStore, Reranker reranker,
                             @Value("${app.retrieval.recall-factor:4}") int recallFactor,
-                            @Value("${app.retrieval.min-score:0.1}") double minScore) {
+                            @Value("${app.retrieval.min-score:0.3}") double minScore) {
         this.documentStore = documentStore;
         this.reranker = reranker;
         this.recallFactor = Math.max(recallFactor, 1);
@@ -33,7 +33,7 @@ public class RetrievalService implements RetrieveUseCase {
 
     /** Defaults the no-confident-match floor; used by tests and non-Spring callers. */
     public RetrievalService(DocumentStore documentStore, Reranker reranker, int recallFactor) {
-        this(documentStore, reranker, recallFactor, 0.1);
+        this(documentStore, reranker, recallFactor, 0.3);
     }
 
     @Override

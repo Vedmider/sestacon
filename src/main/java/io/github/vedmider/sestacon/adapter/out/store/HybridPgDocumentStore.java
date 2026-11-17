@@ -99,7 +99,7 @@ public class HybridPgDocumentStore implements DocumentStore {
 
         String sql = """
                 WITH vec AS (
-                    SELECT id, document_id, content,
+                    SELECT id, document_id, content, embedding,
                            ROW_NUMBER() OVER (ORDER BY embedding <=> ?::vector) AS rnk
                     FROM rag_chunks
                     WHERE allowed_roles && ?::text[]%1$s
@@ -107,7 +107,7 @@ public class HybridPgDocumentStore implements DocumentStore {
                     LIMIT ?
                 ),
                 txt AS (
-                    SELECT id, document_id, content,
+                    SELECT id, document_id, content, embedding,
                            ROW_NUMBER() OVER (ORDER BY ts_rank(content_tsv, q.query) DESC) AS rnk
                     FROM rag_chunks, websearch_to_tsquery('%2$s', ?) AS q(query)
                     WHERE allowed_roles && ?::text[] AND content_tsv @@ q.query%1$s
@@ -116,9 +116,9 @@ public class HybridPgDocumentStore implements DocumentStore {
                 )
                 SELECT COALESCE(v.document_id, t.document_id) AS document_id,
                        COALESCE(v.content, t.content) AS content,
-                       COALESCE(1.0 / (? + v.rnk), 0) + COALESCE(1.0 / (? + t.rnk), 0) AS score
+                       1 - (COALESCE(v.embedding, t.embedding) <=> ?::vector) AS score
                 FROM vec v FULL OUTER JOIN txt t ON v.id = t.id
-                ORDER BY score DESC
+                ORDER BY COALESCE(1.0 / (? + v.rnk), 0) + COALESCE(1.0 / (? + t.rnk), 0) DESC
                 LIMIT ?
                 """.formatted(metaClause, tsConfig);
 
@@ -136,6 +136,7 @@ public class HybridPgDocumentStore implements DocumentStore {
             args.add(metaJson);
         }
         args.add(candidates);
+        args.add(queryVector);   // final-SELECT cosine similarity
         args.add(rrfK);
         args.add(rrfK);
         args.add(topK);

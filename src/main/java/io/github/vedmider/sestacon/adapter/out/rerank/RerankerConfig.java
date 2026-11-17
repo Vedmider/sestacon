@@ -25,21 +25,22 @@ public class RerankerConfig {
         return (query, candidates, topK) -> {
             Set<String> terms = tokenize(query);
             return candidates.stream()
-                    .map(c -> new RetrievedChunk(c.text(), c.source(), blended(c, terms)))
+                    .map(c -> new RetrievedChunk(c.text(), c.source(), relevance(c, terms)))
                     .sorted(Comparator.comparingDouble(RetrievedChunk::score).reversed())
                     .limit(Math.max(topK, 0))
                     .toList();
         };
     }
 
-    private static double blended(RetrievedChunk c, Set<String> queryTerms) {
+    private static double relevance(RetrievedChunk c, Set<String> queryTerms) {
+        double sim = Math.max(0.0, Math.min(1.0, c.score()));   // store score is cosine similarity, clamp [0,1]
         if (queryTerms.isEmpty()) {
-            return c.score();
+            return sim;
         }
         Set<String> chunkTerms = tokenize(c.text());
         long hits = queryTerms.stream().filter(chunkTerms::contains).count();
-        double overlap = (double) hits / queryTerms.size();   // 0..1
-        return c.score() + overlap;                            // lexical overlap breaks vector ties
+        double overlap = (double) hits / queryTerms.size();     // 0..1 lexical signal
+        return Math.max(sim, overlap);                          // mode-independent [0,1] relevance
     }
 
     private static Set<String> tokenize(String text) {
