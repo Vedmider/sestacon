@@ -22,7 +22,7 @@ class JudgeEvalHarnessTest {
     }
 
     private static RagQueryUseCase answerer(Map<String, String> answers) {
-        return (q, roles) -> new Answer(answers.getOrDefault(q, ""), List.of(), false);
+        return (q, roles) -> new Answer(answers.getOrDefault(q, ""), List.of(), false, false);
     }
 
     private static RetrievedChunk chunk(String text) {

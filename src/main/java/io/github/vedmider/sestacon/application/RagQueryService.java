@@ -103,7 +103,7 @@ public class RagQueryService implements RagQueryUseCase {
         if (cached.isPresent()) {
             metrics.recordCacheHit();
             CachedAnswer hit = cached.get();
-            return new Answer(hit.answer(), hit.sources(), true);
+            return new Answer(hit.answer(), hit.sources(), true, !hit.sources().isEmpty());
         }
         metrics.recordCacheMiss();
 
@@ -144,6 +144,6 @@ public class RagQueryService implements RagQueryUseCase {
 
         List<String> sources = chunks.stream().map(RetrievedChunk::source).distinct().toList();
         answerCache.store(new CachedAnswer(question, questionEmbedding, answer, sources), roles);
-        return new Answer(answer, sources, false);
+        return new Answer(answer, sources, false, !chunks.isEmpty());
     }
 }

@@ -43,7 +43,7 @@ class ChatControllerWebTest {
     @Test
     void returnsAnswerSourcesAndCachedFlag() throws Exception {
         when(ragQuery.answer(eq("hello?"), anyList()))
-                .thenReturn(new Answer("hi there", List.of("a.txt", "b.md"), true));
+                .thenReturn(new Answer("hi there", List.of("a.txt", "b.md"), true, true));
 
         mockMvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"hello?\"}"))

@@ -81,7 +81,8 @@ class RagChatIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answer").value("The Eiffel Tower is 330 metres tall."))
                 .andExpect(jsonPath("$.sources[0]").value("paris.txt"))
-                .andExpect(jsonPath("$.cached").value(false));
+                .andExpect(jsonPath("$.cached").value(false))
+                .andExpect(jsonPath("$.confident").value(true));
 
         // The retrieved context (the stored fact) must have reached the provider prompt.
         assertThat(chatProvider.lastUserPrompt()).contains(FACT);

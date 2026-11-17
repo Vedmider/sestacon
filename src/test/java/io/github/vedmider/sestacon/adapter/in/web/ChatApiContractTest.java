@@ -48,7 +48,7 @@ class ChatApiContractTest {
     @Test
     void successResponseMatchesContract() throws Exception {
         when(ragQuery.answer(anyString(), anyList()))
-                .thenReturn(new Answer("42", List.of("doc.txt"), false));
+                .thenReturn(new Answer("42", List.of("doc.txt"), false, true));
 
         mockMvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"meaning of life?\"}"))
