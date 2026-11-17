@@ -150,7 +150,30 @@ Dockerfile                       multi-stage, offline embeddings, non-root runti
 
 Created by **Andrii Lisovets** (andrii.lisovets@gmail.com).
 
+## Enterprise setup & support
+
+Sestacon is free for non-production use. If you want to run it in production — or just want it
+wired into your stack without the lift — we offer commercial engagements:
+
+- **Production/commercial license** — unlock production and competitive use before the Change Date.
+- **Integration & setup** — deploy into your infrastructure (on-prem, VPC, or air-gapped) and wire
+  it to your document sources, CI, IDEs, and AI agents / MCP clients.
+- **Custom development** — new connectors, retrieval tuning, and features prioritized for your roadmap.
+- **Support & SLAs** — priority support, security reviews, upgrade assistance, and guaranteed response times.
+- **Team enablement** — onboarding your engineers onto token-efficient, grounded AI workflows.
+
+📩 Talk to us: **andrii.lisovets@gmail.com** — tell us your document sources, scale, and the AI agents
+you run, and we'll scope an integration.
+
 ## License
 
-Released under the [MIT License](LICENSE) — © 2026 Andrii Lisovets. Free to use, modify,
-and distribute; see [`LICENSE`](LICENSE) for the full text.
+Source-available under the [Business Source License 1.1](LICENSE) — © 2026 Andrii Lisovets.
+You may read, build from source, modify, and make **non-production** use freely. Production use
+requires a commercial license until the Change Date, when each version converts to Apache-2.0.
+
+- Licensed Work: Sestacon v0.1.0
+- Additional Use Grant: None
+- Change Date: 2029-11-17 (v0.1.0; each release sets its own, ~3 years out)
+- Change License: Apache License, Version 2.0
+
+See [`LICENSE`](LICENSE) for the full text.
