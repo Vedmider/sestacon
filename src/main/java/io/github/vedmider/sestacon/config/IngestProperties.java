@@ -9,7 +9,16 @@ public class IngestProperties {
 
     private long maxFileSizeBytes = 10L * 1024 * 1024;
     private List<String> allowedContentTypes = List.of(
-            "application/pdf", "text/plain", "text/markdown", "text/x-markdown");
+            // text
+            "text/plain", "text/markdown", "text/x-markdown", "text/html", "text/csv",
+            // structured (naive text chunking)
+            "application/json", "application/x-yaml", "application/yaml", "text/yaml",
+            // documents (Apache Tika extracts text)
+            "application/pdf", "application/rtf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.oasis.opendocument.text");
 
     public long getMaxFileSizeBytes() {
         return maxFileSizeBytes;
