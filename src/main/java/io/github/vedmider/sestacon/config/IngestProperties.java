@@ -18,9 +18,10 @@ public class IngestProperties {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.oasis.opendocument.text",
-            // images (OCR when a tesseract backend is present; otherwise a filename surrogate)
-            "image/png", "image/jpeg", "image/gif", "image/tiff", "image/bmp", "image/webp");
+            "application/vnd.oasis.opendocument.text");
+            // NOTE: image types are intentionally NOT allow-listed — image ingestion is disabled
+            // (no OCR backend). The surrogate/OCR path in TikaDocumentParser is retained; re-enable by
+            // adding image/png, image/jpeg, ... here (and configuring a tesseract backend).
 
     public long getMaxFileSizeBytes() {
         return maxFileSizeBytes;

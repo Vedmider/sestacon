@@ -9,7 +9,7 @@ class IngestPropertiesTest {
     private final IngestProperties properties = new IngestProperties();
 
     @Test
-    void defaultAllowlistCoversTextDocumentStructuredAndImageTypes() {
+    void defaultAllowlistCoversTextDocumentAndStructuredTypes() {
         assertThat(properties.getAllowedContentTypes()).contains(
                 "text/plain", "text/markdown", "text/html", "text/csv",
                 "application/json", "application/x-yaml", "text/yaml",
@@ -17,13 +17,13 @@ class IngestPropertiesTest {
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                "application/vnd.oasis.opendocument.text",
-                "image/png", "image/jpeg", "image/tiff");
+                "application/vnd.oasis.opendocument.text");
     }
 
     @Test
-    void archivesAndBinariesStayExcludedSoTheyReturn415() {
+    void imagesArchivesAndBinariesStayExcludedSoTheyReturn415() {
+        // image ingestion is disabled (no OCR backend); the parser code is retained but not allow-listed
         assertThat(properties.getAllowedContentTypes())
-                .doesNotContain("application/zip", "application/octet-stream");
+                .doesNotContain("image/png", "image/jpeg", "application/zip", "application/octet-stream");
     }
 }

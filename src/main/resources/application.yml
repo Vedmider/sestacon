@@ -105,12 +105,14 @@ app:
       - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
       - application/vnd.openxmlformats-officedocument.presentationml.presentation
       - application/vnd.oasis.opendocument.text
-      - image/png
-      - image/jpeg
-      - image/gif
-      - image/tiff
-      - image/bmp
-      - image/webp
+      # Image ingestion is DISABLED (no OCR backend). The surrogate/OCR code is retained in
+      # TikaDocumentParser; re-enable by adding the image types below (and a tesseract backend):
+      #   - image/png
+      #   - image/jpeg
+      #   - image/gif
+      #   - image/tiff
+      #   - image/bmp
+      #   - image/webp
 
 management:
   endpoints:
