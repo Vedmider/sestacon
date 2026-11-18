@@ -1,6 +1,8 @@
 package io.github.vedmider.sestacon.adapter.in.web;
 
 import io.github.vedmider.sestacon.config.IngestProperties;
+import io.github.vedmider.sestacon.domain.model.DocumentDiff;
+import io.github.vedmider.sestacon.domain.model.IngestResult;
 import io.github.vedmider.sestacon.domain.port.in.DocumentIngestionUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +41,9 @@ class IngestControllerWebTest {
     void setup() {
         when(properties.getMaxFileSizeBytes()).thenReturn(1024L);
         when(properties.getAllowedContentTypes()).thenReturn(List.of("text/plain", "application/pdf"));
-        when(ingestion.ingest(any(), any(), any(), any())).thenReturn(3);
+        when(ingestion.ingestWithVersion(any(), any(), any(), any()))
+                .thenReturn(new IngestResult(3,
+                        new DocumentDiff("f", DocumentDiff.Status.NEW, List.of("chunk-0"))));
     }
 
     private MockMultipartFile file(String name, String type, byte[] bytes) {
@@ -59,17 +63,20 @@ class IngestControllerWebTest {
 
     @Test
     void bindsSourceSystemParamAndPassesItThrough() throws Exception {
-        org.mockito.Mockito.when(ingestion.ingest(
+        org.mockito.Mockito.when(ingestion.ingestWithVersion(
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.eq("snowflake"))).thenReturn(3);
+                org.mockito.ArgumentMatchers.eq("snowflake")))
+                .thenReturn(new IngestResult(3,
+                        new DocumentDiff("a.txt", DocumentDiff.Status.NEW, List.of("chunk-0"))));
 
         mockMvc.perform(multipart("/api/ingest")
                         .file(file("a.txt", "text/plain", "hello".getBytes()))
                         .param("sourceSystem", "snowflake"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].change.status").value("NEW"));
 
-        org.mockito.Mockito.verify(ingestion).ingest(
+        org.mockito.Mockito.verify(ingestion).ingestWithVersion(
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq("snowflake"));

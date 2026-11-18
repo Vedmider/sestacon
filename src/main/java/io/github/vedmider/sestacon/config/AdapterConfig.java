@@ -6,11 +6,13 @@ import io.github.vedmider.sestacon.adapter.out.ai.SpringAiEmbeddingProvider;
 import io.github.vedmider.sestacon.adapter.out.cache.RedisAnswerCache;
 import io.github.vedmider.sestacon.adapter.out.parser.TikaDocumentParser;
 import io.github.vedmider.sestacon.adapter.out.store.HybridPgDocumentStore;
+import io.github.vedmider.sestacon.adapter.out.store.PgDocumentVersionStore;
 import io.github.vedmider.sestacon.adapter.out.store.PgVectorDocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.ChatProvider;
 import io.github.vedmider.sestacon.domain.port.out.DocumentParser;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
+import io.github.vedmider.sestacon.domain.port.out.DocumentVersionStore;
 import io.github.vedmider.sestacon.domain.port.out.EmbeddingProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.client.ChatClient;
@@ -95,6 +97,12 @@ public class AdapterConfig {
                                       ObjectMapper objectMapper, RetrievalProperties retrievalProps) {
         return new HybridPgDocumentStore(jdbcTemplate, embeddingProvider, objectMapper,
                 retrievalProps.getRrfK(), retrievalProps.getTextSearchConfig());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(DocumentVersionStore.class)
+    DocumentVersionStore documentVersionStore(JdbcTemplate jdbcTemplate) {
+        return new PgDocumentVersionStore(jdbcTemplate);
     }
 
     @Bean

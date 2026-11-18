@@ -1,7 +1,9 @@
 package io.github.vedmider.sestacon.adapter.in.web;
 
 import io.github.vedmider.sestacon.domain.model.DocumentChunk;
+import io.github.vedmider.sestacon.domain.model.DocumentVersion;
 import io.github.vedmider.sestacon.domain.port.in.DeleteDocumentUseCase;
+import io.github.vedmider.sestacon.domain.port.in.DocumentVersionUseCase;
 import io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import org.junit.jupiter.api.Test;
@@ -39,6 +41,9 @@ class DocumentControllerWebTest {
 
     @MockBean
     private DeleteDocumentUseCase deletion;
+
+    @MockBean
+    private DocumentVersionUseCase versions;
 
     @Test
     void storesChunksFromStandardContract() throws Exception {
@@ -115,5 +120,28 @@ class DocumentControllerWebTest {
 
         mockMvc.perform(delete("/api/documents/{id}", "eng-only"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void versionReturnsStoredIdentity() throws Exception {
+        when(versions.version("manual.pdf")).thenReturn(java.util.Optional.of(
+                new DocumentVersion("manual.pdf", "deadbeef", 1234L, 2,
+                        java.util.Map.of("chunk-0", "h0", "chunk-1", "h1"))));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .get("/api/documents/{id}/version", "manual.pdf"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.docHash").value("deadbeef"))
+                .andExpect(jsonPath("$.chunkCount").value(2))
+                .andExpect(jsonPath("$.sectionHashes['chunk-0']").value("h0"));
+    }
+
+    @Test
+    void versionOfUnknownDocumentReturns404() throws Exception {
+        when(versions.version("nope")).thenReturn(java.util.Optional.empty());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .get("/api/documents/{id}/version", "nope"))
+                .andExpect(status().isNotFound());
     }
 }

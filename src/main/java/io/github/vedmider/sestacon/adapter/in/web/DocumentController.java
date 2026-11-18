@@ -1,7 +1,9 @@
 package io.github.vedmider.sestacon.adapter.in.web;
 
 import io.github.vedmider.sestacon.domain.model.DocumentChunk;
+import io.github.vedmider.sestacon.domain.model.DocumentVersion;
 import io.github.vedmider.sestacon.domain.port.in.DeleteDocumentUseCase;
+import io.github.vedmider.sestacon.domain.port.in.DocumentVersionUseCase;
 import io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.logging.SecurityAudit;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,10 +41,13 @@ public class DocumentController {
 
     private final IngestChunksUseCase ingestion;
     private final DeleteDocumentUseCase deletion;
+    private final DocumentVersionUseCase versions;
 
-    public DocumentController(IngestChunksUseCase ingestion, DeleteDocumentUseCase deletion) {
+    public DocumentController(IngestChunksUseCase ingestion, DeleteDocumentUseCase deletion,
+                              DocumentVersionUseCase versions) {
         this.ingestion = ingestion;
         this.deletion = deletion;
+        this.versions = versions;
     }
 
     @PostMapping
@@ -80,6 +86,22 @@ public class DocumentController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "insufficient roles to delete all chunks of document: " + documentId);
         }
+    }
+
+    @GetMapping("/{documentId}/version")
+    @Operation(summary = "Document version",
+            description = "Returns the stored version identity of a document — docHash, sizeBytes, "
+                    + "chunkCount and per-section content hashes — so a caller can detect changes "
+                    + "(and which sections changed) without re-uploading. 404 if unknown.")
+    public ResponseEntity<Map<String, Object>> version(@PathVariable String documentId) {
+        DocumentVersion v = versions.version(documentId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "no version for: " + documentId));
+        return ResponseEntity.ok(Map.of(
+                "documentId", v.documentId(),
+                "docHash", v.docHash(),
+                "sizeBytes", v.sizeBytes(),
+                "chunkCount", v.chunkCount(),
+                "sectionHashes", v.sectionHashes()));
     }
 
     private static void log(List<DocumentChunk> chunks) {

@@ -58,13 +58,19 @@ public class IngestController {
         for (MultipartFile file : files) {
             validate(file);
             try {
-                int chunks = ingestion.ingest(filename(file), file.getBytes(),
+                var result = ingestion.ingestWithVersion(filename(file), file.getBytes(),
                         aclTags == null ? List.of() : aclTags,
                         sourceSystem == null || sourceSystem.isBlank() ? "unknown" : sourceSystem);
-                totalChunks += chunks;
-                results.add(Map.of("file", filename(file), "chunks", chunks));
-                log.info("event=ingest_ok file=\"{}\" size={} chunks={}",
-                        filename(file), file.getSize(), chunks);
+                totalChunks += result.chunks();
+                Map<String, Object> entry = new java.util.LinkedHashMap<>();
+                entry.put("file", filename(file));
+                entry.put("chunks", result.chunks());
+                entry.put("change", Map.of(
+                        "status", result.diff().status().name(),
+                        "changedSections", result.diff().changedSections()));
+                results.add(entry);
+                log.info("event=ingest_ok file=\"{}\" size={} chunks={} change={}",
+                        filename(file), file.getSize(), result.chunks(), result.diff().status());
             }
             catch (IOException e) {
                 SecurityAudit.ingestRejected(filename(file), "unreadable");

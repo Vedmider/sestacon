@@ -1,6 +1,8 @@
 package io.github.vedmider.sestacon.adapter.in.web;
 
 import io.github.vedmider.sestacon.config.IngestProperties;
+import io.github.vedmider.sestacon.domain.model.DocumentDiff;
+import io.github.vedmider.sestacon.domain.model.IngestResult;
 import io.github.vedmider.sestacon.domain.port.in.DocumentIngestionUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,9 @@ class IngestApiContractTest {
     void setup() {
         when(properties.getMaxFileSizeBytes()).thenReturn(1_000_000L);
         when(properties.getAllowedContentTypes()).thenReturn(List.of("text/plain"));
-        when(ingestion.ingest(any(), any(), any(), any())).thenReturn(7);
+        when(ingestion.ingestWithVersion(any(), any(), any(), any()))
+                .thenReturn(new IngestResult(7,
+                        new DocumentDiff("a.txt", DocumentDiff.Status.NEW, List.of("chunk-0"))));
     }
 
     @Test

@@ -3,6 +3,7 @@ package io.github.vedmider.sestacon;
 import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.ChatProvider;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
+import io.github.vedmider.sestacon.domain.port.out.DocumentVersionStore;
 import io.github.vedmider.sestacon.domain.port.out.EmbeddingProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,8 @@ class HealthEndpointTest {
     private EmbeddingProvider embeddingProvider;
     @MockBean
     private DocumentStore documentStore;
+    @MockBean
+    private DocumentVersionStore documentVersionStore;
     @MockBean
     private AnswerCache answerCache;
 
