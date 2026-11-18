@@ -18,7 +18,9 @@ public class IngestProperties {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.oasis.opendocument.text");
+            "application/vnd.oasis.opendocument.text",
+            // images (OCR when a tesseract backend is present; otherwise a filename surrogate)
+            "image/png", "image/jpeg", "image/gif", "image/tiff", "image/bmp", "image/webp");
 
     public long getMaxFileSizeBytes() {
         return maxFileSizeBytes;

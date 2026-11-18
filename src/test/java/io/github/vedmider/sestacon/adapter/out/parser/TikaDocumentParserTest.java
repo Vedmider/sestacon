@@ -32,6 +32,27 @@ class TikaDocumentParserTest {
     }
 
     @Test
+    void imageWithoutOcrBackendYieldsAFilenameSurrogateChunk() {
+        // 1x1 transparent PNG: a real image Tika detects but cannot extract text from here (no tesseract).
+        byte[] png = java.util.Base64.getDecoder().decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
+        List<DocumentChunk> chunks = parser.parse("diagram.png", png);
+
+        assertThat(chunks).hasSize(1);
+        assertThat(chunks.get(0).content()).isEqualTo("[diagram.png]");
+        assertThat(chunks.get(0).metadata()).containsEntry("source", "diagram.png")
+                .containsEntry("extracted", false);
+    }
+
+    @Test
+    void blankExtractionFallsBackToASurrogateRatherThanZeroChunks() {
+        List<DocumentChunk> chunks = parser.parse("empty.txt", "   \n  ".getBytes(StandardCharsets.UTF_8));
+        assertThat(chunks).hasSize(1);
+        assertThat(chunks.get(0).content()).isEqualTo("[empty.txt]");
+        assertThat(chunks.get(0).metadata()).containsEntry("extracted", false);
+    }
+
+    @Test
     void overlapPrependsPreviousChunkTailSoBoundaryFactsSurvive() {
         List<String> out = TikaDocumentParser.withOverlap(
                 List.of("alpha beta BOUNDARYFACT", "gamma delta epsilon"), 10);

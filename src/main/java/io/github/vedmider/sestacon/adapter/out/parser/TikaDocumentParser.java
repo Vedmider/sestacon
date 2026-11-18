@@ -32,8 +32,23 @@ public class TikaDocumentParser implements DocumentParser {
     @Override
     public List<DocumentChunk> parse(String filename, byte[] content) {
         Resource resource = new NamedByteArrayResource(content, filename);
-        List<Document> documents = new TikaDocumentReader(resource).get();
-        List<String> texts = splitter.apply(documents).stream().map(Document::getText).toList();
+        List<Document> documents;
+        try {
+            documents = new TikaDocumentReader(resource).get();
+        }
+        catch (RuntimeException unreadable) {
+            documents = List.of();   // binary / image with no OCR backend available
+        }
+        List<String> texts = splitter.apply(documents).stream()
+                .map(Document::getText)
+                .filter(t -> t != null && !t.isBlank())
+                .toList();
+        if (texts.isEmpty()) {
+            // No extractable text (e.g. an image when no tesseract OCR backend is present). Keep the
+            // document retrievable by name with a surrogate chunk + extracted=false, not zero chunks.
+            return List.of(new DocumentChunk(filename, "chunk-0", "[" + filename + "]",
+                    Map.of("source", filename, "extracted", false), List.of(DocumentChunk.PUBLIC)));
+        }
         List<String> overlapped = withOverlap(texts, overlapChars);
         List<DocumentChunk> out = new ArrayList<>(overlapped.size());
         for (int i = 0; i < overlapped.size(); i++) {
