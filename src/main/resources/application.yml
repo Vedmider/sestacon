@@ -90,10 +90,27 @@ app:
     contextual: ${INGEST_CONTEXTUAL:true}   # prepend [doc > section] header to each chunk
     max-file-size-bytes: 10485760
     allowed-content-types:
-      - application/pdf
       - text/plain
       - text/markdown
       - text/x-markdown
+      - text/html
+      - text/csv
+      - application/json
+      - application/x-yaml
+      - application/yaml
+      - text/yaml
+      - application/pdf
+      - application/rtf
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - application/vnd.openxmlformats-officedocument.presentationml.presentation
+      - application/vnd.oasis.opendocument.text
+      - image/png
+      - image/jpeg
+      - image/gif
+      - image/tiff
+      - image/bmp
+      - image/webp
 
 management:
   endpoints:
