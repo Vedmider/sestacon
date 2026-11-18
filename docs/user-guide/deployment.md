@@ -39,7 +39,7 @@ rewrites the registry for all three at once — useful behind a private mirror.
 ```bash
 helm install rag ./charts/sestacon -n rag \
   --set global.registry.url=my.registry/mirror \
-  --set app.image.repository=myteam --set app.image.tag=0.1.0 \
+  --set app.image.repository=myteam --set app.image.tag=0.2.0 \
   --set postgres.image.tag=pg17
 ```
 

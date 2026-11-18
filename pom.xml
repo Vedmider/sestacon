@@ -13,7 +13,7 @@
 
     <groupId>io.github.vedmider</groupId>
     <artifactId>sestacon</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <name>sestacon</name>
     <description>Production-ready RAG application (Spring AI + pgvector)</description>
 

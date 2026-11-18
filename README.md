@@ -171,9 +171,9 @@ Source-available under the [Business Source License 1.1](LICENSE) — © 2026 An
 You may read, build from source, modify, and make **non-production** use freely. Production use
 requires a commercial license until the Change Date, when each version converts to Apache-2.0.
 
-- Licensed Work: Sestacon v0.1.0
+- Licensed Work: Sestacon v0.2.0
 - Additional Use Grant: None
-- Change Date: 2029-11-17 (v0.1.0; each release sets its own, ~3 years out)
+- Change Date: 2029-11-18 (v0.2.0; each release sets its own, ~3 years out)
 - Change License: Apache License, Version 2.0
 
 See [`LICENSE`](LICENSE) for the full text.

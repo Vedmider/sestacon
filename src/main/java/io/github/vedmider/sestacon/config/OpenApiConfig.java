@@ -18,7 +18,7 @@ public class OpenApiConfig {
                         Retrieval-Augmented Generation service. Upload documents, then ask
                         questions answered from them with source attribution. See /api/ingest
                         and /api/chat.""")
-                .version("0.1.0")
+                .version("0.2.0")
                 .license(new License().name("Apache-2.0")));
     }
 }
