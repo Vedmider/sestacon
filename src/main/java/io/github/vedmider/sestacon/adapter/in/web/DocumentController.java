@@ -63,10 +63,16 @@ public class DocumentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No chunks provided");
         }
         List<DocumentChunk> domain = chunks.stream().map(ChunkRequest::toDomain).toList();
-        int stored = ingestion.ingest(domain,
+        var result = ingestion.ingestWithVersions(domain,
                 sourceSystem == null || sourceSystem.isBlank() ? "unknown" : sourceSystem);
         log(domain);
-        return ResponseEntity.ok(Map.of("stored", stored));
+        List<Map<String, Object>> changes = result.changes().stream()
+                .map(d -> Map.<String, Object>of(
+                        "documentId", d.documentId(),
+                        "status", d.status().name(),
+                        "changedSections", d.changedSections()))
+                .toList();
+        return ResponseEntity.ok(Map.of("stored", result.stored(), "changes", changes));
     }
 
     @DeleteMapping("/{documentId}")

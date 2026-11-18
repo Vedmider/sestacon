@@ -1,6 +1,7 @@
 package io.github.vedmider.sestacon.domain.port.in;
 
 import io.github.vedmider.sestacon.domain.model.DocumentChunk;
+import io.github.vedmider.sestacon.domain.model.DocumentDiff;
 
 import java.util.List;
 
@@ -16,5 +17,13 @@ public interface IngestChunksUseCase {
     }
 
     /** Ingests chunks, recording {@code sourceSystem} as provenance metadata. */
-    int ingest(List<DocumentChunk> chunks, String sourceSystem);
+    default int ingest(List<DocumentChunk> chunks, String sourceSystem) {
+        return ingestWithVersions(chunks, sourceSystem).stored();
+    }
+
+    /** Ingests chunks and returns the stored count plus a per-document version diff. */
+    IngestChunksResult ingestWithVersions(List<DocumentChunk> chunks, String sourceSystem);
+
+    record IngestChunksResult(int stored, List<DocumentDiff> changes) {
+    }
 }

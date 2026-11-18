@@ -47,7 +47,11 @@ class DocumentControllerWebTest {
 
     @Test
     void storesChunksFromStandardContract() throws Exception {
-        when(ingestion.ingest(anyList(), org.mockito.ArgumentMatchers.anyString())).thenReturn(2);
+        when(ingestion.ingestWithVersions(anyList(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(new io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase.IngestChunksResult(
+                        2, List.of(new io.github.vedmider.sestacon.domain.model.DocumentDiff(
+                                "manual.pdf", io.github.vedmider.sestacon.domain.model.DocumentDiff.Status.NEW,
+                                List.of("0:Ch1", "1:")))));
 
         mockMvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -57,11 +61,13 @@ class DocumentControllerWebTest {
                                   {"documentId":"manual.pdf","content":"error ERR-503-GATEWAY"}
                                 ]"""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.stored").value(2));
+                .andExpect(jsonPath("$.stored").value(2))
+                .andExpect(jsonPath("$.changes[0].documentId").value("manual.pdf"))
+                .andExpect(jsonPath("$.changes[0].status").value("NEW"));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(ingestion).ingest(captor.capture(), org.mockito.ArgumentMatchers.anyString());
+        org.mockito.Mockito.verify(ingestion).ingestWithVersions(captor.capture(), org.mockito.ArgumentMatchers.anyString());
         List<DocumentChunk> sent = captor.getValue();
         assertThat(sent).hasSize(2);
         assertThat(sent.get(0).aclTags()).containsExactly("engineering");
