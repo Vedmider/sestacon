@@ -18,12 +18,16 @@ GOLDEN = os.environ.get("GOLDEN") or os.path.join(HERE, "..", "src", "test", "re
 
 
 def call(base, path, data, headers):
-    req = urllib.request.Request(base + path, data=data, method="POST", headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            return r.status, r.read().decode("utf-8")
-    except urllib.error.HTTPError as e:
-        return e.code, e.read().decode("utf-8")
+    for attempt in range(8):
+        req = urllib.request.Request(base + path, data=data, method="POST", headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.status, r.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 7:
+                time.sleep(float(e.headers.get("Retry-After") or 8))
+                continue
+            return e.code, e.read().decode("utf-8")
 
 
 def ingest(base, doc_id, text):

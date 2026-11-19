@@ -238,6 +238,30 @@
    "query": "how do I request a new laptop for the team and what is the policy",
    "relevant": [],
    "slice": "negative-natural-language-hard"
+  },
+  {
+   "query": "how are database backups stored and how do I restore one",
+   "relevant": [
+    "golden-backup-guide.md",
+    "golden-restore-guide.md"
+   ],
+   "slice": "multi-document"
+  },
+  {
+   "query": "how do I scale up replicas and roll back a deployment",
+   "relevant": [
+    "golden-scaling-runbook.md",
+    "golden-rollback-runbook.md"
+   ],
+   "slice": "multi-document"
+  },
+  {
+   "query": "how do I configure TLS and the log level",
+   "relevant": [
+    "golden-tls-config.md",
+    "golden-logging-config.md"
+   ],
+   "slice": "multi-document"
   }
  ]
 }

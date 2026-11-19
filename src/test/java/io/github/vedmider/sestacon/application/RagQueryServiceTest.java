@@ -92,6 +92,18 @@ class RagQueryServiceTest {
     }
 
     @Test
+    void chunksFarBelowTheTopHitAreLeftOutOfTheContextAndTheSources() {
+        store.toReturn = List.of(
+                new RetrievedChunk("Paris is the capital of France.", "geo.txt", 0.9),
+                new RetrievedChunk("Unrelated README text.", "README.md", 0.35));
+
+        Answer answer = service().answer("What is the capital of France?");
+
+        assertThat(answer.sources()).containsExactly("geo.txt");
+        assertThat(chat.lastUser).doesNotContain("Unrelated README text.");
+    }
+
+    @Test
     void cacheHitSkipsTheLlm() {
         cache.hit = Optional.of(new CachedAnswer("q", new float[]{1f, 0f, 0f},
                 "cached answer", List.of("doc.txt")));

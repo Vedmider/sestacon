@@ -118,6 +118,9 @@ public class RagQueryService implements RagQueryUseCase {
                 return true;
             }).toList();
         }
+        double top = chunks.stream().mapToDouble(RetrievedChunk::score).max().orElse(0);
+        double cut = properties.getContextRelativeCut() * top;
+        chunks = chunks.stream().filter(c -> c.score() >= cut).toList();
         String context = chunks.stream()
                 .map(RetrievedChunk::text)
                 .reduce((a, b) -> a + "\n---\n" + b)
