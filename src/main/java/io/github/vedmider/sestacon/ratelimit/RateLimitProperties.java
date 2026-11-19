@@ -8,6 +8,9 @@ public class RateLimitProperties {
     private boolean enabled = true;
     private int requestsPerMinute = 60;
     private boolean trustForwardedHeader = false;
+    /** Peers allowed to set X-Forwarded-For (IPs or IPv4 CIDRs); empty = any peer when trust is on. */
+    private java.util.List<String> trustedProxies = new java.util.ArrayList<>();
+
     private long maxTrackedClients = 100_000;
 
     public boolean isEnabled() {
@@ -32,6 +35,14 @@ public class RateLimitProperties {
 
     public void setTrustForwardedHeader(boolean trustForwardedHeader) {
         this.trustForwardedHeader = trustForwardedHeader;
+    }
+
+    public java.util.List<String> getTrustedProxies() {
+        return trustedProxies;
+    }
+
+    public void setTrustedProxies(java.util.List<String> trustedProxies) {
+        this.trustedProxies = trustedProxies;
     }
 
     public long getMaxTrackedClients() {

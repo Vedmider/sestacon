@@ -11,10 +11,17 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final RateLimiter rateLimiter;
     private final boolean trustForwardedHeader;
+    private final java.util.List<String> trustedProxies;
 
     public RateLimitInterceptor(RateLimiter rateLimiter, boolean trustForwardedHeader) {
+        this(rateLimiter, trustForwardedHeader, java.util.List.of());
+    }
+
+    public RateLimitInterceptor(RateLimiter rateLimiter, boolean trustForwardedHeader,
+                                java.util.List<String> trustedProxies) {
         this.rateLimiter = rateLimiter;
         this.trustForwardedHeader = trustForwardedHeader;
+        this.trustedProxies = trustedProxies == null ? java.util.List.of() : java.util.List.copyOf(trustedProxies);
     }
 
     @Override
@@ -32,6 +39,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     // XFF is spoofable, so trust it only behind a known proxy (opt-in); otherwise use the
     // socket peer address, which a client cannot forge.
     private String clientKey(HttpServletRequest request) {
-        return trustForwardedHeader ? ClientIp.of(request) : request.getRemoteAddr();
+        boolean viaTrustedProxy = trustForwardedHeader
+                && ClientIp.isTrustedPeer(request.getRemoteAddr(), trustedProxies);
+        return viaTrustedProxy ? ClientIp.of(request) : request.getRemoteAddr();
     }
 }

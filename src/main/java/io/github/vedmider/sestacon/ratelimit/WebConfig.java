@@ -17,7 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RateLimitInterceptor(rateLimiter, properties.isTrustForwardedHeader()))
+        registry.addInterceptor(new RateLimitInterceptor(rateLimiter, properties.isTrustForwardedHeader(),
+                        properties.getTrustedProxies()))
                 .addPathPatterns("/api/chat", "/api/ingest", "/api/retrieve");
     }
 }

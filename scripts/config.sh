@@ -44,3 +44,6 @@ LLM_MODEL="${LLM_MODEL:-openai/gpt-oss-20b}"
 
 # Retrieval: vector = dense only; hybrid = vector + full-text + RBAC + RRF.
 RETRIEVAL_MODE="${RETRIEVAL_MODE:-hybrid}"                 # vector | hybrid (hybrid: vector + full-text + RBAC + RRF)
+# The gateway (host) reaches the container via the docker bridge: trust its X-Forwarded-For so each client gets a bucket.
+RATE_LIMIT_TRUST_XFF="${RATE_LIMIT_TRUST_XFF:-true}"
+RATE_LIMIT_TRUSTED_PROXIES="${RATE_LIMIT_TRUSTED_PROXIES:-172.16.0.0/12}"

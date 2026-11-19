@@ -123,4 +123,48 @@ class RateLimitTest {
         assertThat(limiter.tryAcquire("x")).isTrue();
         assertThat(limiter.tryAcquire("x")).isTrue();
     }
+
+    private static org.springframework.mock.web.MockHttpServletRequest from(String peer, String xff) {
+        org.springframework.mock.web.MockHttpServletRequest r = new org.springframework.mock.web.MockHttpServletRequest();
+        r.setRemoteAddr(peer);
+        r.addHeader("X-Forwarded-For", xff);
+        return r;
+    }
+
+    private static RateLimitInterceptor onePerMinute(java.util.List<String> trustedProxies) {
+        RateLimitProperties props = new RateLimitProperties();
+        props.setRequestsPerMinute(1);
+        return new RateLimitInterceptor(new RateLimiter(props), true, trustedProxies);
+    }
+
+    @Test
+    void aClientCannotSpoofItsBucketBehindTheGateway() throws Exception {
+        RateLimitInterceptor interceptor = onePerMinute(java.util.List.of("10.0.0.1"));
+
+        assertThat(interceptor.preHandle(from("10.0.0.1", "1.1.1.1, 5.5.5.5"),
+                new org.springframework.mock.web.MockHttpServletResponse(), null)).isTrue();
+        assertThat(interceptor.preHandle(from("10.0.0.1", "2.2.2.2, 5.5.5.5"),
+                new org.springframework.mock.web.MockHttpServletResponse(), null))
+                .as("the hop the gateway appended (5.5.5.5) is the client, not the client-supplied prefix").isFalse();
+    }
+
+    @Test
+    void forwardedHeaderFromAnUntrustedPeerIsIgnored() throws Exception {
+        RateLimitInterceptor interceptor = onePerMinute(java.util.List.of("10.0.0.1"));
+
+        assertThat(interceptor.preHandle(from("10.9.9.9", "1.1.1.1"),
+                new org.springframework.mock.web.MockHttpServletResponse(), null)).isTrue();
+        assertThat(interceptor.preHandle(from("10.9.9.9", "2.2.2.2"),
+                new org.springframework.mock.web.MockHttpServletResponse(), null)).isFalse();
+    }
+
+    @Test
+    void distinctClientsBehindACidrTrustedGatewayGetDistinctBuckets() throws Exception {
+        RateLimitInterceptor interceptor = onePerMinute(java.util.List.of("172.16.0.0/12"));
+
+        assertThat(interceptor.preHandle(from("172.18.0.1", "5.5.5.5"),
+                new org.springframework.mock.web.MockHttpServletResponse(), null)).isTrue();
+        assertThat(interceptor.preHandle(from("172.18.0.1", "6.6.6.6"),
+                new org.springframework.mock.web.MockHttpServletResponse(), null)).isTrue();
+    }
 }
