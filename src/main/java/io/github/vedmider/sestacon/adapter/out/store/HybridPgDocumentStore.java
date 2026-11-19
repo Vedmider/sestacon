@@ -57,6 +57,13 @@ public class HybridPgDocumentStore implements DocumentStore {
     }
 
     @Override
+    public void lockDocuments(java.util.Collection<String> documentIds) {
+        for (String id : new java.util.TreeSet<>(documentIds)) {   // sorted: no lock-order deadlock between batches
+            jdbc.queryForList("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", id);
+        }
+    }
+
+    @Override
     public int deleteByDocumentId(String documentId, List<String> roles) {
         String callerRoles = toPgArray(withPublic(roles));
         Integer hidden = jdbc.queryForObject("""

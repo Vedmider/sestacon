@@ -50,6 +50,7 @@ public class DocumentIngestionService implements DocumentIngestionUseCase {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public IngestResult ingestWithVersion(String filename, byte[] content, List<String> aclTags,
                                           String sourceSystem) {
         List<DocumentChunk> chunks = parser.parse(filename, content);
@@ -73,6 +74,7 @@ public class DocumentIngestionService implements DocumentIngestionUseCase {
             orderedHashes.add(hash);
         }
 
+        documentStore.lockDocuments(List.of(documentId));
         DocumentDiff diff = versionStore.diff(documentId, sectionHashes);
         if (diff.status() == DocumentDiff.Status.UNCHANGED) {
             return new IngestResult(chunks.size(), diff);   // identical content: skip re-embed/re-store

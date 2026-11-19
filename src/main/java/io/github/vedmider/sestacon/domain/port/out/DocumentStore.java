@@ -64,4 +64,8 @@ public interface DocumentStore {
             super("insufficient roles to delete all chunks of document: " + documentId);
         }
     }
+
+    /** Serialize writers of these documents until the caller's transaction ends (diff, replace and record stay atomic). */
+    default void lockDocuments(java.util.Collection<String> documentIds) {
+    }
 }

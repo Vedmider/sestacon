@@ -47,6 +47,7 @@ public class ChunkIngestionService implements IngestChunksUseCase {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public IngestChunksResult ingestWithVersions(List<DocumentChunk> chunks, String sourceSystem) {
         List<DocumentChunk> enriched = enricher.enrich(chunks, sourceSystem);
         List<DocumentChunk> toStore = contextual ? ContextualChunker.contextualize(enriched) : enriched;
@@ -64,6 +65,7 @@ public class ChunkIngestionService implements IngestChunksUseCase {
             sizes.merge(doc, (long) c.content().getBytes(StandardCharsets.UTF_8).length, Long::sum);
         }
 
+        documentStore.lockDocuments(perDoc.keySet());
         List<DocumentDiff> diffs = new ArrayList<>();
         for (Map.Entry<String, LinkedHashMap<String, String>> e : perDoc.entrySet()) {
             diffs.add(versionStore.diff(e.getKey(), e.getValue()));

@@ -31,7 +31,9 @@ public class DeleteDocumentService implements DeleteDocumentUseCase {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public int delete(String documentId, List<String> roles) {
+        documentStore.lockDocuments(List.of(documentId));
         try {
             int removed = documentStore.deleteByDocumentId(documentId, roles);
             versionStore.delete(documentId);
