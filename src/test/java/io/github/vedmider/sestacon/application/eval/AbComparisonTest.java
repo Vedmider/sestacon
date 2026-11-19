@@ -56,4 +56,48 @@ class AbComparisonTest {
                 .toMarkdown();
         assertThat(md).contains("P@k", "R@k", "MRR", "delta", "A", "B");
     }
+
+    @Test
+    void pairedComparisonCountsWinsLossesAndTiesPerCase() {
+        var a = arm(Map.of("q1", List.of(hit("n"), hit("g1")), "q2", List.of(hit("g2")), "q3", List.of(hit("g3"))));
+        var b = arm(Map.of("q1", List.of(hit("g1")), "q2", List.of(hit("n"), hit("g2")), "q3", List.of(hit("g3"))));
+        var cases = List.of(new Case("q1", "g1"), new Case("q2", "g2"), new Case("q3", "g3"));
+
+        var r = AbComparison.run("A", a, "B", b, cases, 5, List.of());
+
+        assertThat(r.wins()).isEqualTo(1);
+        assertThat(r.losses()).isEqualTo(1);
+        assertThat(r.ties()).isEqualTo(1);
+    }
+
+    @Test
+    void aMeanGainHidingARegressionIsNotNoWorse() {
+        // B wins big on two cases but loses one: the naked mean delta is positive, the paired CI is not >= 0
+        var a = arm(Map.of("q1", List.of(hit("n"), hit("n"), hit("g1")), "q2", List.of(hit("n"), hit("n"), hit("g2")),
+                "q3", List.of(hit("g3"))));
+        var b = arm(Map.of("q1", List.of(hit("g1")), "q2", List.of(hit("g2")), "q3", List.of(hit("n"))));
+        var cases = List.of(new Case("q1", "g1"), new Case("q2", "g2"), new Case("q3", "g3"));
+
+        var r = AbComparison.run("A", a, "B", b, cases, 5, List.of());
+
+        assertThat(r.mrrDelta()).isPositive();
+        assertThat(r.mrrDeltaCi95Low()).isNegative();
+        assertThat(r.bIsNoWorse()).isFalse();
+        assertThat(r.isNonInferior(1.0)).isTrue();
+    }
+
+    @Test
+    void bootstrapIntervalIsDeterministicAndBracketsTheMean() {
+        var a = arm(Map.of("q1", List.of(hit("n"), hit("g1")), "q2", List.of(hit("g2"))));
+        var b = arm(Map.of("q1", List.of(hit("g1")), "q2", List.of(hit("g2"))));
+        var cases = List.of(new Case("q1", "g1"), new Case("q2", "g2"));
+
+        var r1 = AbComparison.run("A", a, "B", b, cases, 5, List.of());
+        var r2 = AbComparison.run("A", a, "B", b, cases, 5, List.of());
+
+        assertThat(r1.mrrDeltaCi95Low()).isEqualTo(r2.mrrDeltaCi95Low());
+        assertThat(r1.mrrDeltaCi95Low()).isLessThanOrEqualTo(r1.mrrDelta());
+        assertThat(r1.mrrDeltaCi95High()).isGreaterThanOrEqualTo(r1.mrrDelta());
+        assertThat(r1.toMarkdown()).contains("95% CI", "win/loss/tie");
+    }
 }

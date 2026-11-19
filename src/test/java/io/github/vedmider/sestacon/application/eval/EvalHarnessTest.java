@@ -125,4 +125,65 @@ class EvalHarnessTest {
 
         assertThat(r.meanRecallAtK()).isZero();
     }
+
+    @Test
+    void relevanceIsAnExactDocumentMatchNotASubstring() {
+        var harness = new EvalHarness(retriever(Map.of("q", List.of(hit("data.md")))));
+
+        Report r = harness.run(List.of(new Case("q", "a.md")), 5, List.of());
+
+        assertThat(r.hitRate()).as("data.md must not count as a hit for a.md").isZero();
+    }
+
+    @Test
+    void negativeCasesScoreAbstentionAndAreExcludedFromPositiveMeans() {
+        var harness = new EvalHarness(retriever(Map.of(
+                "pos", List.of(hit("gold")),
+                "neg-silent", List.of(),
+                "neg-noisy", List.of(hit("noise")))));
+
+        Report r = harness.run(List.of(new Case("pos", "gold"),
+                Case.negative("neg-silent", "no-answer"),
+                Case.negative("neg-noisy", "no-answer")), 5, List.of());
+
+        assertThat(r.mrr()).as("negatives must not drag positive means").isCloseTo(1.0, within(1e-9));
+        assertThat(r.meanRecallAtK()).isCloseTo(1.0, within(1e-9));
+        assertThat(r.negatives()).isEqualTo(2);
+        assertThat(r.abstentionRate()).isCloseTo(0.5, within(1e-9));
+    }
+
+    @Test
+    void hitRateIsTheShareOfPositiveCasesWithAnyRelevantDocument() {
+        var harness = new EvalHarness(retriever(Map.of(
+                "q1", List.of(hit("noise"), hit("gold")),
+                "q2", List.of(hit("noise")))));
+
+        Report r = harness.run(List.of(new Case("q1", "gold"), new Case("q2", "gold")), 5, List.of());
+
+        assertThat(r.hitRate()).isCloseTo(0.5, within(1e-9));
+    }
+
+    @Test
+    void metricsAreBrokenDownBySlice() {
+        var harness = new EvalHarness(retriever(Map.of(
+                "kw", List.of(hit("gold")),
+                "nl", List.of(hit("noise")))));
+
+        Report r = harness.run(List.of(new Case("kw", Set.of("gold"), "keyword"),
+                new Case("nl", Set.of("gold"), "natural-language")), 5, List.of());
+
+        assertThat(r.bySlice().get("keyword").mrr()).isCloseTo(1.0, within(1e-9));
+        assertThat(r.bySlice().get("natural-language").mrr()).isZero();
+        assertThat(r.toMarkdown()).contains("keyword", "natural-language");
+    }
+
+    @Test
+    void latencyPercentilesAreReported() {
+        var harness = new EvalHarness(retriever(Map.of("q", List.of(hit("gold")))));
+
+        Report r = harness.run(List.of(new Case("q", "gold"), new Case("q", "gold")), 5, List.of());
+
+        assertThat(r.latencyP95Millis()).isGreaterThanOrEqualTo(r.latencyP50Millis()).isGreaterThanOrEqualTo(0.0);
+        assertThat(r.toMarkdown()).contains("p95");
+    }
 }
