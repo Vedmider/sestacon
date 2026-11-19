@@ -51,7 +51,7 @@ public class HybridPgDocumentStore implements DocumentStore {
                     INSERT INTO rag_chunks (document_id, section_path, content, metadata,
                                             allowed_roles, embedding)
                     VALUES (?, ?, ?, ?::jsonb, ?::text[], ?::vector)""",
-                    c.documentId(), c.sectionPath(), c.content(), toJson(c.metadata()),
+                    c.documentId(), c.sectionPath(), c.content(), toJson(withTokenCount(c)),
                     toPgArray(c.aclTags()), toVector(embeddings.embed(c.content())));
         }
     }
@@ -147,8 +147,22 @@ public class HybridPgDocumentStore implements DocumentStore {
                 args.toArray());
     }
 
+    // Stored at ingest so a retrieval does not re-read and re-tokenize every chunk of a large hit document.
+    private static java.util.Map<String, Object> withTokenCount(DocumentChunk c) {
+        java.util.Map<String, Object> m = new java.util.LinkedHashMap<>(c.metadata() == null ? java.util.Map.of() : c.metadata());
+        m.put("tokens", io.github.vedmider.sestacon.application.TokenEstimate.count(c.content()));
+        return m;
+    }
+
     @Override
     public int sourceTokens(String documentId) {
+        java.util.Map<String, Object> agg = jdbc.queryForMap("""
+                SELECT COALESCE(sum((metadata->>'tokens')::int), 0) AS total,
+                       count(*) FILTER (WHERE metadata->>'tokens' IS NULL) AS legacy
+                FROM rag_chunks WHERE document_id = ?""", documentId);
+        if (((Number) agg.get("legacy")).longValue() == 0) {
+            return ((Number) agg.get("total")).intValue();
+        }
         List<String> contents = jdbc.queryForList(
                 "SELECT content FROM rag_chunks WHERE document_id = ?", String.class, documentId);
         int total = 0;

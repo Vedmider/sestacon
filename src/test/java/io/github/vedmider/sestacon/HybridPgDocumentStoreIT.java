@@ -150,4 +150,22 @@ class HybridPgDocumentStoreIT {
     void callerWithTheRoleMayDeleteARestrictedDocument() {
         assertThat(store.deleteByDocumentId("eng-doc", List.of("engineering"))).isEqualTo(1);
     }
+
+    @Test
+    void sourceTokensAreStoredAtIngestAndSummedWithoutRereadingContent() {
+        String text = "The quarterly revenue report mentions zorblax metrics.";
+
+        assertThat(jdbc.queryForObject("SELECT (metadata->>'tokens')::int FROM rag_chunks WHERE document_id='public-doc'",
+                Integer.class)).isEqualTo(io.github.vedmider.sestacon.application.TokenEstimate.count(text));
+        assertThat(store.sourceTokens("public-doc"))
+                .isEqualTo(io.github.vedmider.sestacon.application.TokenEstimate.count(text));
+    }
+
+    @Test
+    void sourceTokensStillCountLegacyChunksWithoutAStoredCount() {
+        jdbc.update("UPDATE rag_chunks SET metadata = metadata - 'tokens' WHERE document_id='public-doc'");
+
+        assertThat(store.sourceTokens("public-doc")).isEqualTo(io.github.vedmider.sestacon.application.TokenEstimate
+                .count("The quarterly revenue report mentions zorblax metrics."));
+    }
 }
