@@ -15,4 +15,20 @@ public interface AnswerCache {
     Optional<CachedAnswer> findSimilar(float[] queryEmbedding, List<String> roles);
 
     void store(CachedAnswer entry, List<String> roles);
+
+    /** Drop every cached answer; called on any corpus change (ingest, re-ingest, delete). */
+    default void invalidateAll() {
+    }
+
+    /** No-op cache for components constructed without one. */
+    final class None implements AnswerCache {
+        @Override
+        public Optional<CachedAnswer> findSimilar(float[] queryEmbedding, List<String> roles) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void store(CachedAnswer entry, List<String> roles) {
+        }
+    }
 }

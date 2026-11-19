@@ -6,6 +6,7 @@ import io.github.vedmider.sestacon.domain.model.DocumentChunk;
 import io.github.vedmider.sestacon.domain.model.DocumentDiff;
 import io.github.vedmider.sestacon.domain.model.IngestResult;
 import io.github.vedmider.sestacon.domain.port.in.DocumentIngestionUseCase;
+import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.DocumentParser;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.DocumentVersionStore;
@@ -27,10 +28,20 @@ public class DocumentIngestionService implements DocumentIngestionUseCase {
     private final DocumentVersionStore versionStore;
     private final MetadataEnricher enricher;
     private final boolean contextual;
+    private final AnswerCache answerCache;
 
     public DocumentIngestionService(DocumentParser parser, DocumentStore documentStore,
                                     DocumentVersionStore versionStore, MetadataEnricher enricher,
-                                    @Value("${app.ingest.contextual:true}") boolean contextual) {
+                                    boolean contextual) {
+        this(parser, documentStore, versionStore, enricher, contextual, new AnswerCache.None());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public DocumentIngestionService(DocumentParser parser, DocumentStore documentStore,
+                                    DocumentVersionStore versionStore, MetadataEnricher enricher,
+                                    @Value("${app.ingest.contextual:true}") boolean contextual,
+                                    AnswerCache answerCache) {
+        this.answerCache = answerCache;
         this.parser = parser;
         this.documentStore = documentStore;
         this.versionStore = versionStore;
@@ -57,7 +68,7 @@ public class DocumentIngestionService implements DocumentIngestionUseCase {
         Map<String, String> sectionHashes = new LinkedHashMap<>();
         List<String> orderedHashes = new ArrayList<>(chunks.size());
         for (DocumentChunk c : chunks) {
-            String hash = ContentHash.of(c.content());
+            String hash = ContentHash.ofSection(c.content(), c.aclTags());
             sectionHashes.put(c.sectionPath(), hash);
             orderedHashes.add(hash);
         }
@@ -69,6 +80,7 @@ public class DocumentIngestionService implements DocumentIngestionUseCase {
         documentStore.replace(chunks, aclTags == null ? List.of() : aclTags);
         versionStore.record(documentId, ContentHash.ofChunks(orderedHashes),
                 content.length, sectionHashes);
+        answerCache.invalidateAll();
         return new IngestResult(chunks.size(), diff);
     }
 }

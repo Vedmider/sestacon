@@ -27,6 +27,7 @@ public class RedisAnswerCache implements AnswerCache {
     private static final Logger log = LoggerFactory.getLogger(RedisAnswerCache.class);
     private static final String INDEX_PREFIX = "ragcache:index:";
     private static final String ENTRY_PREFIX = "ragcache:entry:";
+    private static final String GEN_KEY = "ragcache:gen";
 
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper;
@@ -44,8 +45,8 @@ public class RedisAnswerCache implements AnswerCache {
         if (!properties.isEnabled()) {
             return Optional.empty();
         }
-        String indexKey = INDEX_PREFIX + roleKey(roles);
         try {
+            String indexKey = indexKey(roles);
             List<String> ids = redis.opsForList().range(indexKey, 0, -1);
             if (ids == null || ids.isEmpty()) {
                 return Optional.empty();
@@ -77,12 +78,13 @@ public class RedisAnswerCache implements AnswerCache {
         if (!properties.isEnabled()) {
             return;
         }
-        String indexKey = INDEX_PREFIX + roleKey(roles);
         try {
+            String indexKey = indexKey(roles);
             String id = UUID.randomUUID().toString();
             redis.opsForValue().set(ENTRY_PREFIX + id, objectMapper.writeValueAsString(entry),
                     Duration.ofSeconds(properties.getTtlSeconds()));
             redis.opsForList().leftPush(indexKey, id);
+            redis.expire(indexKey, Duration.ofSeconds(properties.getTtlSeconds()));
             evictOverflow(indexKey);
         }
         catch (Exception e) {
@@ -90,18 +92,43 @@ public class RedisAnswerCache implements AnswerCache {
         }
     }
 
-    /** Stable, injection-safe key for a role-set: normalised (trim, lowercase, sorted, unique). */
-    private static String roleKey(List<String> roles) {
-        if (roles == null || roles.isEmpty()) {
-            return "public";
+    @Override
+    public void invalidateAll() {
+        if (!properties.isEnabled()) {
+            return;
         }
-        TreeSet<String> normalized = new TreeSet<>();
-        for (String role : roles) {
-            if (role != null && !role.isBlank()) {
-                normalized.add(role.trim().toLowerCase().replaceAll("[^a-z0-9_-]", "_"));
+        try {
+            redis.opsForValue().increment(GEN_KEY);
+        }
+        catch (Exception e) {
+            log.warn("Semantic cache invalidation failed: {}", e.getMessage());
+        }
+    }
+
+    private String indexKey(List<String> roles) {
+        String gen = redis.opsForValue().get(GEN_KEY);
+        return INDEX_PREFIX + (gen == null ? "0" : gen) + ":" + roleKey(roles);
+    }
+
+    /** Injective key for a role-set: exact (case-sensitive, like the store's ACL match), sorted, unique, base64url per role. */
+    static String roleKey(List<String> roles) {
+        TreeSet<String> exact = new TreeSet<>();
+        if (roles != null) {
+            for (String role : roles) {
+                if (role != null && !role.isBlank()) {
+                    exact.add(role.trim());
+                }
             }
         }
-        return normalized.isEmpty() ? "public" : String.join(",", new ArrayList<>(normalized));
+        if (exact.isEmpty()) {
+            return "public";
+        }
+        List<String> encoded = new ArrayList<>(exact.size());
+        for (String role : exact) {
+            encoded.add(java.util.Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(role.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        }
+        return String.join(",", encoded);
     }
 
     private void evictOverflow(String indexKey) {

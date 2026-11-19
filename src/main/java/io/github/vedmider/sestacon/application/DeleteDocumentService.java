@@ -1,6 +1,7 @@
 package io.github.vedmider.sestacon.application;
 
 import io.github.vedmider.sestacon.domain.port.in.DeleteDocumentUseCase;
+import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.DocumentVersionStore;
 import io.github.vedmider.sestacon.logging.SecurityAudit;
@@ -15,9 +16,18 @@ public class DeleteDocumentService implements DeleteDocumentUseCase {
     private final DocumentStore documentStore;
     private final DocumentVersionStore versionStore;
 
+    private final AnswerCache answerCache;
+
     public DeleteDocumentService(DocumentStore documentStore, DocumentVersionStore versionStore) {
+        this(documentStore, versionStore, new AnswerCache.None());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public DeleteDocumentService(DocumentStore documentStore, DocumentVersionStore versionStore,
+                                 AnswerCache answerCache) {
         this.documentStore = documentStore;
         this.versionStore = versionStore;
+        this.answerCache = answerCache;
     }
 
     @Override
@@ -25,6 +35,7 @@ public class DeleteDocumentService implements DeleteDocumentUseCase {
         try {
             int removed = documentStore.deleteByDocumentId(documentId, roles);
             versionStore.delete(documentId);
+            answerCache.invalidateAll();
             SecurityAudit.documentDeleted(documentId, removed);
             return removed;
         }

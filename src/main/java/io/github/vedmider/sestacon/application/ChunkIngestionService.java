@@ -5,6 +5,7 @@ import io.github.vedmider.sestacon.domain.model.ContextualChunker;
 import io.github.vedmider.sestacon.domain.model.DocumentChunk;
 import io.github.vedmider.sestacon.domain.model.DocumentDiff;
 import io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase;
+import io.github.vedmider.sestacon.domain.port.out.AnswerCache;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.DocumentVersionStore;
 import io.github.vedmider.sestacon.domain.port.out.MetadataEnricher;
@@ -26,10 +27,19 @@ public class ChunkIngestionService implements IngestChunksUseCase {
     private final DocumentVersionStore versionStore;
     private final MetadataEnricher enricher;
     private final boolean contextual;
+    private final AnswerCache answerCache;
 
     public ChunkIngestionService(DocumentStore documentStore, DocumentVersionStore versionStore,
+                                 MetadataEnricher enricher, boolean contextual) {
+        this(documentStore, versionStore, enricher, contextual, new AnswerCache.None());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ChunkIngestionService(DocumentStore documentStore, DocumentVersionStore versionStore,
                                  MetadataEnricher enricher,
-                                 @Value("${app.ingest.contextual:true}") boolean contextual) {
+                                 @Value("${app.ingest.contextual:true}") boolean contextual,
+                                 AnswerCache answerCache) {
+        this.answerCache = answerCache;
         this.documentStore = documentStore;
         this.versionStore = versionStore;
         this.enricher = enricher;
@@ -50,7 +60,7 @@ public class ChunkIngestionService implements IngestChunksUseCase {
             String doc = c.documentId();
             int i = ordinal.merge(doc, 1, Integer::sum) - 1;
             perDoc.computeIfAbsent(doc, k -> new LinkedHashMap<>())
-                    .put(i + ":" + c.sectionPath(), ContentHash.of(c.content()));
+                    .put(i + ":" + c.sectionPath(), ContentHash.ofSection(c.content(), c.aclTags()));
             sizes.merge(doc, (long) c.content().getBytes(StandardCharsets.UTF_8).length, Long::sum);
         }
 
@@ -68,6 +78,7 @@ public class ChunkIngestionService implements IngestChunksUseCase {
                     ContentHash.ofChunks(new ArrayList<>(e.getValue().values())),
                     sizes.getOrDefault(e.getKey(), 0L), e.getValue());
         }
+        answerCache.invalidateAll();
         return new IngestChunksResult(toStore.size(), diffs);
     }
 }

@@ -14,6 +14,14 @@ public final class ContentHash {
         return hex(digest().digest(content.getBytes(StandardCharsets.UTF_8)));
     }
 
+    /** Section identity = content plus its ACL, so an access change is a change; public sections hash as before. */
+    public static String ofSection(String content, java.util.List<String> aclTags) {
+        if (aclTags == null || aclTags.isEmpty()) {
+            return of(content);
+        }
+        return of(content + "\u0000acl:" + String.join(",", new java.util.TreeSet<>(aclTags)));
+    }
+
     /** Document hash = hash of its ordered chunk hashes, so any chunk change changes the doc hash. */
     public static String ofChunks(java.util.List<String> orderedChunkHashes) {
         return of(String.join("\n", orderedChunkHashes));
