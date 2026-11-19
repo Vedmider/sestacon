@@ -72,7 +72,35 @@ class RedisAnswerCacheTest {
         cache.findSimilar(new float[]{1f}, List.of());
 
         org.mockito.Mockito.verify(values).increment("ragcache:gen");
-        org.mockito.Mockito.verify(lists).range("ragcache:index:0:public", 0, -1);
-        org.mockito.Mockito.verify(lists).range("ragcache:index:1:public", 0, -1);
+        org.mockito.Mockito.verify(lists).range("ragcache:index:default:0:public", 0, -1);
+        org.mockito.Mockito.verify(lists).range("ragcache:index:default:1:public", 0, -1);
+    }
+
+    @Test
+    void answersCachedUnderOneRetrievalConfigurationAreNotServedUnderAnother() {
+        @SuppressWarnings("unchecked")
+        org.springframework.data.redis.core.ValueOperations<String, String> values =
+                mock(org.springframework.data.redis.core.ValueOperations.class);
+        @SuppressWarnings("unchecked")
+        org.springframework.data.redis.core.ListOperations<String, String> lists =
+                mock(org.springframework.data.redis.core.ListOperations.class);
+        when(redis.opsForValue()).thenReturn(values);
+        when(redis.opsForList()).thenReturn(lists);
+
+        new RedisAnswerCache(redis, new ObjectMapper(), props, "cfgA").findSimilar(new float[]{1f}, List.of());
+        new RedisAnswerCache(redis, new ObjectMapper(), props, "cfgB").findSimilar(new float[]{1f}, List.of());
+
+        org.mockito.Mockito.verify(lists).range("ragcache:index:cfgA:0:public", 0, -1);
+        org.mockito.Mockito.verify(lists).range("ragcache:index:cfgB:0:public", 0, -1);
+    }
+
+    @Test
+    void theConfigurationFingerprintChangesWithAnyAnswerShapingSetting() {
+        var env = new org.springframework.mock.env.MockEnvironment()
+                .withProperty("app.retrieval.min-score", "0.3").withProperty("app.rag.top-k", "4");
+        String before = RedisAnswerCache.fingerprint(env);
+        env.setProperty("app.retrieval.min-score", "0.4");
+
+        assertThat(RedisAnswerCache.fingerprint(env)).isNotEqualTo(before).hasSize(12);
     }
 }

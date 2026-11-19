@@ -108,8 +108,8 @@ public class AdapterConfig {
     @Bean
     @ConditionalOnMissingBean(AnswerCache.class)
     AnswerCache answerCache(StringRedisTemplate redis, ObjectMapper objectMapper,
-                            CacheProperties properties) {
-        return new RedisAnswerCache(redis, objectMapper, properties);
+                            CacheProperties properties, org.springframework.core.env.Environment env) {
+        return new RedisAnswerCache(redis, objectMapper, properties, RedisAnswerCache.fingerprint(env));
     }
 
     @Bean

@@ -32,12 +32,37 @@ public class RedisAnswerCache implements AnswerCache {
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper;
     private final CacheProperties properties;
+    private final String namespace;
+
+    /** Settings that shape an answer; a change must not serve answers produced under the old values. */
+    static final List<String> ANSWER_SHAPING_PROPERTIES = List.of(
+            "app.rag.top-k", "app.rag.system-prompt", "app.rag.context-relative-cut",
+            "app.retrieval.mode", "app.retrieval.min-score", "app.retrieval.recall-factor",
+            "app.retrieval.rrf-k", "app.retrieval.text-search-config",
+            "app.rerank.min-lexical-coverage", "app.rerank.vector-trusted-for-non-latin",
+            "spring.ai.openai.chat.options.model", "app.embedding.provider", "app.embedding.openai.model",
+            "spring.ai.embedding.transformer.onnx.model-uri");
 
     public RedisAnswerCache(StringRedisTemplate redis, ObjectMapper objectMapper,
                             CacheProperties properties) {
+        this(redis, objectMapper, properties, "default");
+    }
+
+    public RedisAnswerCache(StringRedisTemplate redis, ObjectMapper objectMapper,
+                            CacheProperties properties, String namespace) {
         this.redis = redis;
         this.objectMapper = objectMapper;
         this.properties = properties;
+        this.namespace = namespace;
+    }
+
+    /** 12-hex fingerprint of the answer-shaping settings (unset ones included as empty). */
+    public static String fingerprint(org.springframework.core.env.PropertyResolver env) {
+        StringBuilder sb = new StringBuilder();
+        for (String key : ANSWER_SHAPING_PROPERTIES) {
+            sb.append(key).append('=').append(env.getProperty(key, "")).append('\n');
+        }
+        return io.github.vedmider.sestacon.domain.model.ContentHash.of(sb.toString()).substring(0, 12);
     }
 
     @Override
@@ -107,7 +132,7 @@ public class RedisAnswerCache implements AnswerCache {
 
     private String indexKey(List<String> roles) {
         String gen = redis.opsForValue().get(GEN_KEY);
-        return INDEX_PREFIX + (gen == null ? "0" : gen) + ":" + roleKey(roles);
+        return INDEX_PREFIX + namespace + ":" + (gen == null ? "0" : gen) + ":" + roleKey(roles);
     }
 
     /** Injective key for a role-set: exact (case-sensitive, like the store's ACL match), sorted, unique, base64url per role. */
