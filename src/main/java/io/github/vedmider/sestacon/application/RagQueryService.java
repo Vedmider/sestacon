@@ -4,6 +4,7 @@ import io.github.vedmider.sestacon.config.RagProperties;
 import io.github.vedmider.sestacon.domain.model.Answer;
 import io.github.vedmider.sestacon.domain.model.CachedAnswer;
 import io.github.vedmider.sestacon.domain.model.Completion;
+import io.github.vedmider.sestacon.domain.model.Refusal;
 import io.github.vedmider.sestacon.domain.model.RetrievedChunk;
 import io.github.vedmider.sestacon.domain.port.in.RagQueryUseCase;
 import io.github.vedmider.sestacon.domain.port.in.RetrieveUseCase;
@@ -146,8 +147,11 @@ public class RagQueryService implements RagQueryUseCase {
             answer = outRedaction.redactedText();
         }
 
-        List<String> sources = chunks.stream().map(RetrievedChunk::source).distinct().toList();
+        boolean refused = Refusal.isRefusal(answer);
+        List<String> sources = refused ? List.of()
+                : chunks.stream().map(RetrievedChunk::source).distinct().toList();
         answerCache.store(new CachedAnswer(question, questionEmbedding, answer, sources), roles);
-        return new Answer(answer, sources, false, !chunks.isEmpty());
+        return new Answer(answer, sources, false, !chunks.isEmpty() && !refused,
+                chunks.stream().map(RetrievedChunk::text).toList());
     }
 }

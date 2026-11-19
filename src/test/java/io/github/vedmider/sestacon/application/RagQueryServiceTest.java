@@ -104,6 +104,26 @@ class RagQueryServiceTest {
     }
 
     @Test
+    void aGroundedRefusalCitesNoSourcesAndIsNotConfident() {
+        store.toReturn = List.of(new RetrievedChunk("Ferns are watered on Mondays.", "plants.md", 0.4));
+        chat.answer = "I do not know.";
+
+        Answer answer = service().answer("What is the parking policy?");
+
+        assertThat(answer.sources()).isEmpty();
+        assertThat(answer.confident()).isFalse();
+    }
+
+    @Test
+    void theAnswerCarriesTheContextsItWasGroundedOn() {
+        store.toReturn = List.of(new RetrievedChunk("Paris is the capital of France.", "geo.txt", 0.9));
+
+        Answer answer = service().answer("What is the capital of France?");
+
+        assertThat(answer.contexts()).containsExactly("Paris is the capital of France.");
+    }
+
+    @Test
     void cacheHitSkipsTheLlm() {
         cache.hit = Optional.of(new CachedAnswer("q", new float[]{1f, 0f, 0f},
                 "cached answer", List.of("doc.txt")));
