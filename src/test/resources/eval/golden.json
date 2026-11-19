@@ -1,0 +1,243 @@
+{
+ "docs": [
+  {
+   "id": "golden-rollback-runbook.md",
+   "text": "To roll back a failed deployment, scale the old replicaset up and the new one down, then verify health checks."
+  },
+  {
+   "id": "golden-scaling-runbook.md",
+   "text": "Horizontal pod autoscaling adds replicas when CPU exceeds the target; configure min and max replica counts."
+  },
+  {
+   "id": "golden-auth-api.md",
+   "text": "The authentication API issues a bearer token from the login endpoint; include it in the Authorization header."
+  },
+  {
+   "id": "golden-rate-limit-api.md",
+   "text": "The public API enforces a rate limit of one hundred requests per minute per API key; exceeding it returns 429."
+  },
+  {
+   "id": "golden-backup-guide.md",
+   "text": "Nightly database backups are written to object storage and retained for thirty days before expiry."
+  },
+  {
+   "id": "golden-restore-guide.md",
+   "text": "To restore from backup, download the latest snapshot from object storage and replay it into a fresh database."
+  },
+  {
+   "id": "golden-tls-config.md",
+   "text": "Configure TLS by mounting the certificate and private key, then set the minimum protocol version to 1.2."
+  },
+  {
+   "id": "golden-logging-config.md",
+   "text": "Set the log level with an environment variable; structured JSON logs are shipped to the aggregation pipeline."
+  },
+  {
+   "id": "golden-onboarding.md",
+   "text": "New engineers request repository access, install the toolchain, and run the local stack before their first change."
+  },
+  {
+   "id": "golden-incident-policy.md",
+   "text": "During an incident, the on-call engineer declares severity, opens a bridge, and records a timeline for the postmortem."
+  },
+  {
+   "id": "golden-ua-backup.md",
+   "text": "Резервні копії бази даних створюються щоночі о другій годині та зберігаються чотирнадцять днів."
+  },
+  {
+   "id": "golden-ua-vacation.md",
+   "text": "Працівники подають заяву на відпустку через кадровий портал щонайменше за два тижні."
+  },
+  {
+   "id": "golden-team-handbook.md",
+   "text": "Team handbook. This is the policy for the team on code review and what we expect from every change. For each pull request the author and the reviewer agree on the scope, and the reviewer checks tests and the design. What we value is small changes that are easy to review, and we prefer that the team discusses large refactors before they start. For urgent fixes the on-call engineer can merge with one approval, and the team reviews the change the next day. The policy applies to all repositories and to all members of the team, and it is reviewed every quarter."
+  },
+  {
+   "id": "golden-architecture-overview.md",
+   "text": "Architecture overview. The platform is made of an API gateway, a set of stateless services and a shared PostgreSQL database. Requests enter through the gateway, which handles authentication and routing, and the services read and write their own tables. What matters for the design is that every service can be scaled on its own and that the data for each service is owned by that service. For asynchronous work the services publish events to a queue, and the consumers process them in order. The architecture is documented for the whole engineering organisation and is updated when a new service is added."
+  }
+ ],
+ "cases": [
+  {
+   "query": "rollback deployment replicaset",
+   "relevant": [
+    "golden-rollback-runbook.md"
+   ],
+   "slice": "keyword"
+  },
+  {
+   "query": "autoscaling replicas CPU",
+   "relevant": [
+    "golden-scaling-runbook.md"
+   ],
+   "slice": "keyword"
+  },
+  {
+   "query": "bearer token login endpoint",
+   "relevant": [
+    "golden-auth-api.md"
+   ],
+   "slice": "keyword"
+  },
+  {
+   "query": "TLS certificate private key",
+   "relevant": [
+    "golden-tls-config.md"
+   ],
+   "slice": "keyword"
+  },
+  {
+   "query": "how do I roll back a bad deployment",
+   "relevant": [
+    "golden-rollback-runbook.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "how does autoscaling add replicas",
+   "relevant": [
+    "golden-scaling-runbook.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "how do I get an auth bearer token",
+   "relevant": [
+    "golden-auth-api.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "what is the API rate limit",
+   "relevant": [
+    "golden-rate-limit-api.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "how do I restore the database from backup",
+   "relevant": [
+    "golden-restore-guide.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "what happens when the on-call engineer handles an incident",
+   "relevant": [
+    "golden-incident-policy.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "how long do we keep the nightly snapshots",
+   "relevant": [
+    "golden-backup-guide.md"
+   ],
+   "slice": "paraphrase"
+  },
+  {
+   "query": "undo a broken release",
+   "relevant": [
+    "golden-rollback-runbook.md"
+   ],
+   "slice": "paraphrase"
+  },
+  {
+   "query": "what should a new hire do before shipping code",
+   "relevant": [
+    "golden-onboarding.md"
+   ],
+   "slice": "paraphrase"
+  },
+  {
+   "query": "how verbose should the service output be",
+   "relevant": [
+    "golden-logging-config.md"
+   ],
+   "slice": "paraphrase"
+  },
+  {
+   "query": "резервні копії бази даних",
+   "relevant": [
+    "golden-ua-backup.md"
+   ],
+   "slice": "non-english"
+  },
+  {
+   "query": "як подати заяву на відпустку",
+   "relevant": [
+    "golden-ua-vacation.md"
+   ],
+   "slice": "non-english"
+  },
+  {
+   "query": "zzqx flurbington quantum",
+   "relevant": [],
+   "slice": "negative-keyword"
+  },
+  {
+   "query": "parking allowance holidays",
+   "relevant": [],
+   "slice": "negative-keyword"
+  },
+  {
+   "query": "what is the policy for the team holidays and the parking",
+   "relevant": [],
+   "slice": "negative-natural-language"
+  },
+  {
+   "query": "how do I book a meeting room for the quarterly offsite",
+   "relevant": [],
+   "slice": "negative-natural-language"
+  },
+  {
+   "query": "who is responsible for the coffee machine in the kitchen",
+   "relevant": [],
+   "slice": "negative-natural-language"
+  },
+  {
+   "query": "what is the dress code for the annual party",
+   "relevant": [],
+   "slice": "negative-natural-language"
+  },
+  {
+   "query": "яка політика щодо паркування автомобілів",
+   "relevant": [],
+   "slice": "negative-non-english"
+  },
+  {
+   "query": "хто відповідає за кавоварку на кухні",
+   "relevant": [],
+   "slice": "negative-non-english"
+  },
+  {
+   "query": "what is the code review policy for the team",
+   "relevant": [
+    "golden-team-handbook.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "how do requests enter the platform and who handles authentication",
+   "relevant": [
+    "golden-architecture-overview.md"
+   ],
+   "slice": "natural-language"
+  },
+  {
+   "query": "what is the policy for the team on parental leave and the holidays",
+   "relevant": [],
+   "slice": "negative-natural-language-hard"
+  },
+  {
+   "query": "what is the budget for the team and the travel expenses",
+   "relevant": [],
+   "slice": "negative-natural-language-hard"
+  },
+  {
+   "query": "how do I request a new laptop for the team and what is the policy",
+   "relevant": [],
+   "slice": "negative-natural-language-hard"
+  }
+ ]
+}

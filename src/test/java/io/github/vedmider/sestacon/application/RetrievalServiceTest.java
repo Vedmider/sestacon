@@ -1,6 +1,6 @@
 package io.github.vedmider.sestacon.application;
 
-import io.github.vedmider.sestacon.adapter.out.rerank.RerankerConfig;
+import io.github.vedmider.sestacon.adapter.out.rerank.LexicalReranker;
 import io.github.vedmider.sestacon.domain.model.RetrievedChunk;
 import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.domain.port.out.Reranker;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 class RetrievalServiceTest {
 
     private final DocumentStore store = mock(DocumentStore.class);
-    private final Reranker reranker = new RerankerConfig().lexicalReranker();
+    private final Reranker reranker = new LexicalReranker();
 
     @Test
     void retrievesWideThenReranksToTopK() {
