@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Maven verify (unit + Testcontainers IT)
+    name: Maven — unit & component tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,9 +34,10 @@ jobs:
       - name: Fetch embedding model
         run: bash scripts/fetch-model.sh
 
-      # ubuntu-latest ships a running Docker daemon for the pgvector Testcontainers ITs.
-      - name: Build, unit + integration tests
-        run: mvn -B -ntp clean verify
+      # Surefire only: unit + component tests. The Docker-backed Testcontainers
+      # integration tests (failsafe, *IT) are not run in CI.
+      - name: Build, unit + component tests
+        run: mvn -B -ntp clean test
 
       - name: Upload coverage report
         if: always()
