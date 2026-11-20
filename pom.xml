@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.5.16</version>
         <relativePath/>
     </parent>
 
@@ -37,11 +37,11 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring-ai.version>1.0.1</spring-ai.version>
+        <spring-ai.version>2.0.2</spring-ai.version>
         <testcontainers.version>1.20.4</testcontainers.version>
-        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
-        <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
-        <jacoco.version>0.8.12</jacoco.version>
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
+        <springdoc-openapi.version>3.2.0</springdoc-openapi.version>
+        <jacoco.version>0.8.16</jacoco.version>
     </properties>
 
     <dependencyManagement>
