@@ -41,7 +41,7 @@
         <testcontainers.version>1.20.4</testcontainers.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
-        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
     </properties>
 
     <dependencyManagement>
