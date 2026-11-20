@@ -165,13 +165,15 @@ class HybridPgDocumentStoreIT {
 
     @Test
     void aContentFreeSurrogateChunkIsNotReturnedByRetrieval() {
-        // PT-01: an unreadable upload yields a filename surrogate (extracted=false); it must not pollute
-        // retrieval as a confident hit, even when the query matches the filename.
+        // PT-01: an unreadable upload yields a filename surrogate (extracted=false); it must never be
+        // returned by retrieval, even when the query matches its filename. (The store has no score floor,
+        // so unrelated seeded docs may still come back — we only assert the surrogate itself is excluded.)
         store.add(List.of(new DocumentChunk("garbage.pdf", "chunk-0", "[garbage.pdf]",
                 java.util.Map.of("source", "garbage.pdf", "extracted", false),
                 List.of(DocumentChunk.PUBLIC))));
 
-        assertThat(store.search("garbage.pdf", 10, List.of())).isEmpty();
+        assertThat(store.search("garbage.pdf", 10, List.of()))
+                .noneMatch(c -> "garbage.pdf".equals(c.source()));
     }
 
     @Test
