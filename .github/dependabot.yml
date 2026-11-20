@@ -1,4 +1,7 @@
 version: 2
+# Policy: auto-propose only minor/patch updates (compatible within the major line we build and
+# test against). Major upgrades (e.g. Spring Boot 3 -> 4) are deliberate, human-tested changes,
+# never auto-PRs, so CI always validates what we actually ship.
 updates:
   - package-ecosystem: maven
     directory: "/"
@@ -9,8 +12,7 @@ updates:
       maven:
         patterns: ["*"]
     ignore:
-      # Spring Boot majors need a deliberate migration, not an auto-PR.
-      - dependency-name: "org.springframework.boot:spring-boot-starter-parent"
+      - dependency-name: "*"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
@@ -19,3 +21,6 @@ updates:
     groups:
       github-actions:
         patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
