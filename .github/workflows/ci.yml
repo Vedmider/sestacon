@@ -27,7 +27,7 @@ jobs:
       # The local embedding model (all-MiniLM-L6-v2 ONNX, ~87 MB) is gitignored; one
       # full-context test boots it. Fetch once and cache across runs.
       - name: Cache embedding model
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: src/main/resources/onnx/all-MiniLM-L6-v2
           key: minilm-onnx-v1
