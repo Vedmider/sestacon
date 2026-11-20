@@ -44,6 +44,15 @@ class DocumentControllerWebTest {
     @MockBean
     private DocumentVersionUseCase versions;
 
+    @MockBean
+    private io.github.vedmider.sestacon.config.IngestProperties properties;
+
+    @org.junit.jupiter.api.BeforeEach
+    void stubLimits() {
+        when(properties.getMaxChunksPerRequest()).thenReturn(1000);
+        when(properties.getMaxChunkContentBytes()).thenReturn(1024L * 1024);
+    }
+
     @Test
     void storesChunksFromStandardContract() throws Exception {
         when(ingestion.ingestWithVersions(anyList(), org.mockito.ArgumentMatchers.anyString()))
@@ -79,6 +88,24 @@ class DocumentControllerWebTest {
         mockMvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON)
                         .content("[]"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void tooManyChunksReturns413() throws Exception {
+        // PT-02: the pre-chunked endpoint must bound intake like the file endpoint does.
+        when(properties.getMaxChunksPerRequest()).thenReturn(2);
+        String body = "[" + String.join(",", java.util.Collections.nCopies(3,
+                "{\"documentId\":\"d\",\"content\":\"x\"}")) + "]";
+        mockMvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isPayloadTooLarge());
+    }
+
+    @Test
+    void anOversizedChunkReturns413() throws Exception {
+        when(properties.getMaxChunkContentBytes()).thenReturn(8L);
+        mockMvc.perform(post("/api/documents").contentType(MediaType.APPLICATION_JSON)
+                        .content("[{\"documentId\":\"d\",\"content\":\"way too long content\"}]"))
+                .andExpect(status().isPayloadTooLarge());
     }
 
     @Test

@@ -41,12 +41,15 @@ public class DocumentController {
     private final IngestChunksUseCase ingestion;
     private final DeleteDocumentUseCase deletion;
     private final DocumentVersionUseCase versions;
+    private final io.github.vedmider.sestacon.config.IngestProperties properties;
 
     public DocumentController(IngestChunksUseCase ingestion, DeleteDocumentUseCase deletion,
-                              DocumentVersionUseCase versions) {
+                              DocumentVersionUseCase versions,
+                              io.github.vedmider.sestacon.config.IngestProperties properties) {
         this.ingestion = ingestion;
         this.deletion = deletion;
         this.versions = versions;
+        this.properties = properties;
     }
 
     @PostMapping
@@ -60,6 +63,20 @@ public class DocumentController {
                     required = false) String sourceSystem) {
         if (chunks == null || chunks.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No chunks provided");
+        }
+        if (chunks.size() > properties.getMaxChunksPerRequest()) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                    "too many chunks: " + chunks.size() + " (max "
+                            + properties.getMaxChunksPerRequest() + ")");
+        }
+        for (ChunkRequest c : chunks) {
+            long size = c.content() == null ? 0
+                    : c.content().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            if (size > properties.getMaxChunkContentBytes()) {
+                throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                        "chunk content exceeds max size of " + properties.getMaxChunkContentBytes()
+                                + " bytes");
+            }
         }
         List<DocumentChunk> domain = chunks.stream().map(ChunkRequest::toDomain).toList();
         var result = ingestion.ingestWithVersions(domain,

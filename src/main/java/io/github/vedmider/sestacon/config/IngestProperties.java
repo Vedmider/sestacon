@@ -8,6 +8,8 @@ import java.util.List;
 public class IngestProperties {
 
     private long maxFileSizeBytes = 10L * 1024 * 1024;
+    private int maxChunksPerRequest = 1000;
+    private long maxChunkContentBytes = 1024L * 1024;
     private List<String> allowedContentTypes = List.of(
             // text
             "text/plain", "text/markdown", "text/x-markdown", "text/html", "text/csv",
@@ -29,6 +31,22 @@ public class IngestProperties {
 
     public void setMaxFileSizeBytes(long maxFileSizeBytes) {
         this.maxFileSizeBytes = maxFileSizeBytes;
+    }
+
+    public int getMaxChunksPerRequest() {
+        return maxChunksPerRequest;
+    }
+
+    public void setMaxChunksPerRequest(int maxChunksPerRequest) {
+        this.maxChunksPerRequest = maxChunksPerRequest;
+    }
+
+    public long getMaxChunkContentBytes() {
+        return maxChunkContentBytes;
+    }
+
+    public void setMaxChunkContentBytes(long maxChunkContentBytes) {
+        this.maxChunkContentBytes = maxChunkContentBytes;
     }
 
     public List<String> getAllowedContentTypes() {
