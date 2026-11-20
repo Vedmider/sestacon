@@ -124,7 +124,8 @@ public class HybridPgDocumentStore implements DocumentStore {
                     SELECT id, document_id, content, embedding,
                            ROW_NUMBER() OVER (ORDER BY embedding <=> ?::vector) AS rnk
                     FROM rag_chunks
-                    WHERE allowed_roles && ?::text[]%1$s
+                    WHERE allowed_roles && ?::text[]
+                          AND (metadata->>'extracted') IS DISTINCT FROM 'false'%1$s
                     ORDER BY embedding <=> ?::vector
                     LIMIT ?
                 ),
@@ -132,7 +133,8 @@ public class HybridPgDocumentStore implements DocumentStore {
                     SELECT id, document_id, content, embedding,
                            ROW_NUMBER() OVER (ORDER BY ts_rank(content_tsv, q.query) DESC) AS rnk
                     FROM rag_chunks, websearch_to_tsquery('%2$s', ?) AS q(query)
-                    WHERE allowed_roles && ?::text[] AND content_tsv @@ q.query%1$s
+                    WHERE allowed_roles && ?::text[] AND content_tsv @@ q.query
+                          AND (metadata->>'extracted') IS DISTINCT FROM 'false'%1$s
                     ORDER BY ts_rank(content_tsv, q.query) DESC
                     LIMIT ?
                 )

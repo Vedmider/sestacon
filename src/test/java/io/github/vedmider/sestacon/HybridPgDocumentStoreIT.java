@@ -164,6 +164,17 @@ class HybridPgDocumentStoreIT {
     }
 
     @Test
+    void aContentFreeSurrogateChunkIsNotReturnedByRetrieval() {
+        // PT-01: an unreadable upload yields a filename surrogate (extracted=false); it must not pollute
+        // retrieval as a confident hit, even when the query matches the filename.
+        store.add(List.of(new DocumentChunk("garbage.pdf", "chunk-0", "[garbage.pdf]",
+                java.util.Map.of("source", "garbage.pdf", "extracted", false),
+                List.of(DocumentChunk.PUBLIC))));
+
+        assertThat(store.search("garbage.pdf", 10, List.of())).isEmpty();
+    }
+
+    @Test
     void sourceTokensAreStoredAtIngestAndSummedWithoutRereadingContent() {
         String text = "The quarterly revenue report mentions zorblax metrics.";
 

@@ -102,6 +102,7 @@ public class PgVectorDocumentStore implements DocumentStore {
         List<Document> hits = vectorStore.similaritySearch(builder.build());
         return hits.stream()
                 .filter(d -> visibleTo(d, roles))
+                .filter(d -> !"false".equals(String.valueOf(d.getMetadata().get("extracted"))))
                 .limit(topK)
                 .map(PgVectorDocumentStore::toChunk)
                 .toList();
