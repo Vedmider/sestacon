@@ -1,5 +1,10 @@
 # RAG App — Spring AI + pgvector + Helm/K8s
 
+[![CI](https://github.com/Vedmider/sestacon/actions/workflows/ci.yml/badge.svg)](https://github.com/Vedmider/sestacon/actions/workflows/ci.yml)
+[![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net)
+[![Spring AI 1.0](https://img.shields.io/badge/Spring%20AI-1.0-brightgreen.svg)](https://spring.io/projects/spring-ai)
+[![License: BSL 1.1](https://img.shields.io/badge/license-BSL--1.1-blue.svg)](LICENSE)
+
 Production-ready Retrieval-Augmented Generation service. Upload your documents, then
 ask questions answered **grounded in those documents** with source attribution.
 

@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Maven verify (unit + Testcontainers IT)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # The local embedding model (all-MiniLM-L6-v2 ONNX, ~87 MB) is gitignored; one
+      # full-context test boots it. Fetch once and cache across runs.
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: src/main/resources/onnx/all-MiniLM-L6-v2
+          key: minilm-onnx-v1
+      - name: Fetch embedding model
+        run: bash scripts/fetch-model.sh
+
+      # ubuntu-latest ships a running Docker daemon for the pgvector Testcontainers ITs.
+      - name: Build, unit + integration tests
+        run: mvn -B -ntp clean verify
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+          if-no-files-found: ignore
