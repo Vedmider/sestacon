@@ -37,7 +37,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring-ai.version>1.0.1</spring-ai.version>
+        <spring-ai.version>2.0.2</spring-ai.version>
         <testcontainers.version>1.20.4</testcontainers.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
