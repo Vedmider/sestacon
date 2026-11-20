@@ -42,8 +42,10 @@ public class DeleteDocumentService implements DeleteDocumentUseCase {
             return removed;
         }
         catch (DocumentStore.DeleteNotPermittedException e) {
+            // Opaque: a caller who cannot see the whole document gets the same 0 as an unknown id,
+            // so a restricted document's existence is not revealed (no 403 oracle).
             SecurityAudit.deleteRefused(documentId);
-            throw e;
+            return 0;
         }
     }
 }

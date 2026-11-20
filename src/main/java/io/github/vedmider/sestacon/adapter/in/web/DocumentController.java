@@ -5,7 +5,6 @@ import io.github.vedmider.sestacon.domain.model.DocumentVersion;
 import io.github.vedmider.sestacon.domain.port.in.DeleteDocumentUseCase;
 import io.github.vedmider.sestacon.domain.port.in.DocumentVersionUseCase;
 import io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase;
-import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import io.github.vedmider.sestacon.logging.SecurityAudit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -78,29 +77,27 @@ public class DocumentController {
     @DeleteMapping("/{documentId}")
     @Operation(summary = "Delete a document",
             description = "Removes all chunks of the given documentId (e.g. a superseded law). "
-                    + "All-or-nothing RBAC: the caller's X-Roles must cover every chunk of the "
-                    + "document, else 403 and nothing is deleted. Deleting an unknown id returns "
-                    + "200 with deleted=0 (idempotent).")
+                    + "All-or-nothing RBAC: the delete proceeds only if the caller's X-Roles cover "
+                    + "every chunk. A caller who cannot see the whole document gets the same "
+                    + "200 deleted=0 as an unknown id (idempotent; a restricted document's "
+                    + "existence is never revealed).")
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable String documentId,
             @RequestHeader(value = "X-Roles", required = false) List<String> roles) {
-        try {
-            int deleted = deletion.delete(documentId, roles == null ? List.of() : roles);
-            return ResponseEntity.ok(Map.of("documentId", documentId, "deleted", deleted));
-        }
-        catch (DocumentStore.DeleteNotPermittedException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "insufficient roles to delete all chunks of document: " + documentId);
-        }
+        int deleted = deletion.delete(documentId, roles == null ? List.of() : roles);
+        return ResponseEntity.ok(Map.of("documentId", documentId, "deleted", deleted));
     }
 
     @GetMapping("/{documentId}/version")
     @Operation(summary = "Document version",
             description = "Returns the stored version identity of a document — docHash, sizeBytes, "
                     + "chunkCount and per-section content hashes — so a caller can detect changes "
-                    + "(and which sections changed) without re-uploading. 404 if unknown.")
-    public ResponseEntity<Map<String, Object>> version(@PathVariable String documentId) {
-        DocumentVersion v = versions.version(documentId).orElseThrow(() ->
+                    + "(and which sections changed) without re-uploading. ACL-gated: 404 if the "
+                    + "document is unknown OR the caller's X-Roles do not cover all of it.")
+    public ResponseEntity<Map<String, Object>> version(
+            @PathVariable String documentId,
+            @RequestHeader(value = "X-Roles", required = false) String rolesHeader) {
+        DocumentVersion v = versions.version(documentId, RoleHeader.parse(rolesHeader)).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "no version for: " + documentId));
         return ResponseEntity.ok(Map.of(
                 "documentId", v.documentId(),

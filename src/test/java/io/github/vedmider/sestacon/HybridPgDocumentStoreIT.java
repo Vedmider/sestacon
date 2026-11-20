@@ -152,6 +152,18 @@ class HybridPgDocumentStoreIT {
     }
 
     @Test
+    void isReadableIsTrueOnlyWhenTheCallerCanSeeTheWholeDocument() {
+        assertThat(store.isReadable("public-doc", List.of())).isTrue();
+        assertThat(store.isReadable("eng-doc", List.of())).isFalse();
+        assertThat(store.isReadable("eng-doc", List.of("engineering"))).isTrue();
+    }
+
+    @Test
+    void isReadableIsFalseForAnUnknownDocument() {
+        assertThat(store.isReadable("does-not-exist", List.of("engineering"))).isFalse();
+    }
+
+    @Test
     void sourceTokensAreStoredAtIngestAndSummedWithoutRereadingContent() {
         String text = "The quarterly revenue report mentions zorblax metrics.";
 

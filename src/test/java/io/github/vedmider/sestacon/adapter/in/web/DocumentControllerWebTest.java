@@ -5,7 +5,6 @@ import io.github.vedmider.sestacon.domain.model.DocumentVersion;
 import io.github.vedmider.sestacon.domain.port.in.DeleteDocumentUseCase;
 import io.github.vedmider.sestacon.domain.port.in.DocumentVersionUseCase;
 import io.github.vedmider.sestacon.domain.port.in.IngestChunksUseCase;
-import io.github.vedmider.sestacon.domain.port.out.DocumentStore;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,17 +119,19 @@ class DocumentControllerWebTest {
     }
 
     @Test
-    void deleteRefusedByRbacReturns403() throws Exception {
-        when(deletion.delete(eq("eng-only"), eq(List.of())))
-                .thenThrow(new DocumentStore.DeleteNotPermittedException("eng-only"));
+    void deleteRefusedByRbacIsOpaqueZero() throws Exception {
+        // PT-03: a caller who cannot see the whole document gets the same 200/deleted=0 as an unknown
+        // id, so the service already resolved the RBAC refusal to 0 — no 403 that reveals existence.
+        when(deletion.delete(eq("eng-only"), eq(List.of()))).thenReturn(0);
 
         mockMvc.perform(delete("/api/documents/{id}", "eng-only"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deleted").value(0));
     }
 
     @Test
     void versionReturnsStoredIdentity() throws Exception {
-        when(versions.version("manual.pdf")).thenReturn(java.util.Optional.of(
+        when(versions.version(eq("manual.pdf"), anyList())).thenReturn(java.util.Optional.of(
                 new DocumentVersion("manual.pdf", "deadbeef", 1234L, 2,
                         java.util.Map.of("chunk-0", "h0", "chunk-1", "h1"))));
 
@@ -143,8 +144,20 @@ class DocumentControllerWebTest {
     }
 
     @Test
-    void versionOfUnknownDocumentReturns404() throws Exception {
-        when(versions.version("nope")).thenReturn(java.util.Optional.empty());
+    void versionPassesXRolesThrough() throws Exception {
+        when(versions.version(eq("manual.pdf"), eq(List.of("legal")))).thenReturn(java.util.Optional.of(
+                new DocumentVersion("manual.pdf", "deadbeef", 1L, 1, java.util.Map.of())));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .get("/api/documents/{id}/version", "manual.pdf").header("X-Roles", "legal"))
+                .andExpect(status().isOk());
+
+        verify(versions).version("manual.pdf", List.of("legal"));
+    }
+
+    @Test
+    void versionOfUnknownOrRestrictedDocumentReturns404() throws Exception {
+        when(versions.version(eq("nope"), anyList())).thenReturn(java.util.Optional.empty());
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                         .get("/api/documents/{id}/version", "nope"))

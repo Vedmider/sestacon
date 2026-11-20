@@ -77,6 +77,21 @@ public class HybridPgDocumentStore implements DocumentStore {
     }
 
     @Override
+    public boolean isReadable(String documentId, List<String> roles) {
+        String callerRoles = toPgArray(withPublic(roles));
+        Integer total = jdbc.queryForObject(
+                "SELECT count(*) FROM rag_chunks WHERE document_id = ?", Integer.class, documentId);
+        if (total == null || total == 0) {
+            return false;   // unknown document — treated the same as a restricted one
+        }
+        Integer hidden = jdbc.queryForObject("""
+                SELECT count(*) FROM rag_chunks
+                WHERE document_id = ? AND NOT (allowed_roles && ?::text[])""",
+                Integer.class, documentId, callerRoles);
+        return hidden == null || hidden == 0;
+    }
+
+    @Override
     @org.springframework.transaction.annotation.Transactional
     public void replace(List<DocumentChunk> chunks, List<String> roles) {
         chunks.stream().map(DocumentChunk::documentId).distinct()

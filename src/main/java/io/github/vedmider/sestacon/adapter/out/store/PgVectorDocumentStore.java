@@ -56,6 +56,16 @@ public class PgVectorDocumentStore implements DocumentStore {
     }
 
     @Override
+    public boolean isReadable(String documentId, List<String> roles) {
+        var filter = new org.springframework.ai.vectorstore.filter.FilterExpressionBuilder()
+                .eq("documentId", documentId).build();
+        List<Document> existing = vectorStore.similaritySearch(
+                SearchRequest.builder().query(documentId).topK(10_000)
+                        .filterExpression(filter).build());
+        return !existing.isEmpty() && existing.stream().allMatch(d -> visibleTo(d, roles));
+    }
+
+    @Override
     public void replace(List<DocumentChunk> chunks, List<String> roles) {
         chunks.stream().map(DocumentChunk::documentId).distinct()
                 .forEach(id -> deleteByDocumentId(id, roles));

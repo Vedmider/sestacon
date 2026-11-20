@@ -51,6 +51,16 @@ public interface DocumentStore {
     int deleteByDocumentId(String documentId, List<String> roles);
 
     /**
+     * Whether {@code roles} (plus {@code "public"}) may read document {@code documentId} as a whole:
+     * true iff the document exists and <i>every</i> chunk is visible to the caller (same all-or-nothing
+     * bar as delete). Used to ACL-gate whole-document metadata (e.g. version identity) so a restricted
+     * document is indistinguishable from an unknown one. Stores that cannot enforce RBAC return true.
+     */
+    default boolean isReadable(String documentId, List<String> roles) {
+        return true;
+    }
+
+    /**
      * Atomically replaces each document in {@code chunks}: for every distinct {@code documentId}
      * present, its existing chunks are deleted (all-or-nothing RBAC) and the new chunks inserted,
      * in a single transaction. This is the supersession primitive — re-ingesting a document id
